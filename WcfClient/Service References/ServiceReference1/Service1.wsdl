@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="Service1" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="http://localhost:51599/Service1.svc?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://localhost:51599/Service1.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://localhost:51599/Service1.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/System.Data" />
+      <xsd:import schemaLocation="http://localhost:51599/Service1.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/WcfService" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IService1_GetAllContacts_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetAllContacts" />
+  </wsdl:message>
+  <wsdl:message name="IService1_GetAllContacts_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetAllContactsResponse" />
+  </wsdl:message>
+  <wsdl:message name="IService1_GetContact_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetContact" />
+  </wsdl:message>
+  <wsdl:message name="IService1_GetContact_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetContactResponse" />
+  </wsdl:message>
+  <wsdl:message name="IService1_GetSuffixes_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetSuffixes" />
+  </wsdl:message>
+  <wsdl:message name="IService1_GetSuffixes_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetSuffixesResponse" />
+  </wsdl:message>
+  <wsdl:message name="IService1_GetPrefixes_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetPrefixes" />
+  </wsdl:message>
+  <wsdl:message name="IService1_GetPrefixes_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetPrefixesResponse" />
+  </wsdl:message>
+  <wsdl:message name="IService1_UpdateContact_InputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateContact" />
+  </wsdl:message>
+  <wsdl:message name="IService1_UpdateContact_OutputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateContactResponse" />
+  </wsdl:message>
+  <wsdl:message name="IService1_InsertContact_InputMessage">
+    <wsdl:part name="parameters" element="tns:InsertContact" />
+  </wsdl:message>
+  <wsdl:message name="IService1_InsertContact_OutputMessage">
+    <wsdl:part name="parameters" element="tns:InsertContactResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IService1">
+    <wsdl:operation name="GetAllContacts">
+      <wsdl:input wsaw:Action="http://tempuri.org/IService1/GetAllContacts" message="tns:IService1_GetAllContacts_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IService1/GetAllContactsResponse" message="tns:IService1_GetAllContacts_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetContact">
+      <wsdl:input wsaw:Action="http://tempuri.org/IService1/GetContact" message="tns:IService1_GetContact_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IService1/GetContactResponse" message="tns:IService1_GetContact_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetSuffixes">
+      <wsdl:input wsaw:Action="http://tempuri.org/IService1/GetSuffixes" message="tns:IService1_GetSuffixes_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IService1/GetSuffixesResponse" message="tns:IService1_GetSuffixes_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPrefixes">
+      <wsdl:input wsaw:Action="http://tempuri.org/IService1/GetPrefixes" message="tns:IService1_GetPrefixes_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IService1/GetPrefixesResponse" message="tns:IService1_GetPrefixes_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateContact">
+      <wsdl:input wsaw:Action="http://tempuri.org/IService1/UpdateContact" message="tns:IService1_UpdateContact_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IService1/UpdateContactResponse" message="tns:IService1_UpdateContact_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="InsertContact">
+      <wsdl:input wsaw:Action="http://tempuri.org/IService1/InsertContact" message="tns:IService1_InsertContact_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IService1/InsertContactResponse" message="tns:IService1_InsertContact_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IService1" type="tns:IService1">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="GetAllContacts">
+      <soap:operation soapAction="http://tempuri.org/IService1/GetAllContacts" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetContact">
+      <soap:operation soapAction="http://tempuri.org/IService1/GetContact" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetSuffixes">
+      <soap:operation soapAction="http://tempuri.org/IService1/GetSuffixes" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPrefixes">
+      <soap:operation soapAction="http://tempuri.org/IService1/GetPrefixes" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateContact">
+      <soap:operation soapAction="http://tempuri.org/IService1/UpdateContact" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="InsertContact">
+      <soap:operation soapAction="http://tempuri.org/IService1/InsertContact" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Service1">
+    <wsdl:port name="BasicHttpBinding_IService1" binding="tns:BasicHttpBinding_IService1">
+      <soap:address location="http://localhost:51599/Service1.svc" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

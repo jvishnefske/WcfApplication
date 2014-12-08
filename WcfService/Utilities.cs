@@ -51,10 +51,11 @@ namespace WcfService
         public static DataTable getAllContacts() {
             Trace.TraceInformation("getAllContacts: attempting to get connection.");
             //return getContact(1);
-            using (SqlConnection conn = getConnection()){
+            using (SqlConnection conn = getConnection())
+            {
                 conn.Open();
                 SqlCommand command = conn.CreateCommand();
-                command.CommandText = 
+                command.CommandText =
                     @"SELECT TOP 100 [uid]
      [pre.prefix]
       ,[first_name]
@@ -67,55 +68,19 @@ namespace WcfService
   FROM [personnel].[dbo].employees as emp
   left outer join personnel.dbo.prefixes as pre on emp.prefixid = pre.prefixid
   left outer join personnel.dbo.suffixes as suf on emp.suffixid = suf.suffixid;";
-                    
+
                 SqlDataAdapter adapter = new SqlDataAdapter();
 
                 adapter.SelectCommand = command;
                 //new SqlCommand(query, conn);
-                DataTable datatable=new DataTable();
-
-                adapter.Fill(datatable);
-                Trace.TraceInformation("GetAllContacts: returning dataTable of size " + datatable.Rows);
-
-                
-                return datatable;
-            }
-             
-            /*using (SqlConnection conn = getConnection())
-            {
-
-                conn.Open();
-                var command = conn.CreateCommand();
-                command.CommandText =
-                    @"
-SELECT TOP 100 [uid]
-     [pre.prefix]
-      ,[first_name]
-      ,[last_name]
-     ,[suffix]
-      ,[address]
-      ,[city]
-      ,[state]
-      ,[zip]
-  FROM [personnel].[dbo].employees as emp
-  left outer join personnel.dbo.prefixes as pre on emp.prefixid = pre.prefixid
-  left outer join personnel.dbo.suffixes as suf on emp.suffixid = suf.suffixid;
-";
-                    /*@"select uid,prefixid,first_name,last_name,suffixid,address,city,state,zip
-                    from personnel.dbo.employees 
-                    where uid = @uid;";
-                    */
-            /*   
-            command.Parameters.AddWithValue("@uid", 1);
-
-                SqlDataAdapter adapter = new SqlDataAdapter();
-                adapter.SelectCommand = command;
                 DataSet dataset = new DataSet();
+
                 adapter.Fill(dataset);
+                Trace.TraceInformation("GetAllContacts: returning dataTable of size " + dataset.Tables[0].Rows);
+
+
                 return dataset.Tables[0];
-            }*/
-            //return new DataTable();
-            
+            }
         }
         public static DataTable getPrefixes() {
             using (SqlConnection conn = getConnection())

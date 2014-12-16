@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using System.Diagnostics;
 namespace WcfClient
 {
     public partial class frmEditContact : Form
@@ -15,11 +15,10 @@ namespace WcfClient
         public frmEditContact()
         {
             InitializeComponent();
+            Trace.WriteLine("editing contact.");
         }
-
-        private void label6_Click(object sender, EventArgs e)
-        {
-
+        ~frmEditContact() {
+            Trace.WriteLine("edit contact destructor.");
         }
 
     }

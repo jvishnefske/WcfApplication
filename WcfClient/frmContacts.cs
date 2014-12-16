@@ -11,6 +11,7 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Diagnostics.Tracing;
 using System.Threading;
+using System.Diagnostics;
 //using System.Diagnostics.
 //using System.Data;
 namespace WcfClient
@@ -21,8 +22,17 @@ namespace WcfClient
         DataTable contacts;
         public frmContacts()
         {
-            Form traceForm = new frmTraceLog();
-            traceForm.Show();
+            var traceFile = new System.Diagnostics.TextWriterTraceListener("tracelog.txt");
+            
+            Trace.Listeners.Add(traceFile);
+
+            System.Diagnostics.Trace.WriteLine("itializing contacts form.");
+
+            System.Diagnostics.Debug.WriteLine("Debug output from contacts form.");
+            //traceFile.Close();
+
+            //Form traceForm = new frmTraceLog();
+            //traceForm.Show();
             //contacts = new DataTable("","<container><stuff>content</stuff></containier>");
 
             /*Uri baseAddress = new Uri("http://0.0.0.0:8000/ClientData/");
@@ -48,30 +58,19 @@ namespace WcfClient
             dataGridView1.DataSource = contacts;
 
         }
-        //void OnWorkCompleted<TASK,TRESULT>(TASK task, TRESULT result) {
-        //    contacts = (DataTable) result;
-        //}
+        ~frmContacts() {
+            Trace.WriteLine("contact destructor.");
+        }
         void updateContacts(){
             lblStatus.Text = "Attempting connection...";
                     using (ServiceReference1.Service1Client client =
             new ServiceReference1.Service1Client())
-            //client.
-                
+
             {
-                //lblConnection.Text = client.GetType;
+
                 try
                 {
-                    //Task contactsTask = client.GetAllContactsAsync(1);
-                    //while (contactsTask.IsCompleted())
-                    //contactsTask.ContinueWith(OnWorkCompleted);
-                    /*contactsTask.Wait();
-                    if (contactsTask.IsCompleted)
-                    {
-                        lblStatus.Text = "sucessfully completed.";
-                    }
-                    else { 
-                        lblStatus.Text = "not completed.";
-                    }*/
+                    Trace.WriteLine("refreshing contacts.");
 
                     contacts = client.GetAllContacts();
                     //contacts = client.GetContact(1);

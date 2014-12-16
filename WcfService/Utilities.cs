@@ -14,9 +14,13 @@ namespace WcfService
     public class Utilities
     {
 
-        public static System.Diagnostics.Tracing.EventSource tracingSource;
+        //public static System.Diagnostics.Tracing.EventSource tracingSource;
+        //static TraceListener traceListner;
         static Utilities() {
-            
+            //traceListner = new TextWriterTraceListener("c:\\ServiceTrace.txt");
+            //traceListner.WriteLine("starting tracing.");  
+            System.Diagnostics.Trace.WriteLine("starting tracing");
+            //TraceOptions.
             //System.Diagnostics.Tracing.w
             //tracingSource = new EventSource();
             //tracingSource.IsEnabled = true;
@@ -49,7 +53,9 @@ namespace WcfService
             }
         }
         public static DataTable getAllContacts() {
-            Trace.TraceInformation("getAllContacts: attempting to get connection.");
+            System.Diagnostics.Trace.WriteLine("Refreshing contacts."); 
+            
+            //Trace.TraceInformation("getAllContacts: attempting to get connection.");
             //return getContact(1);
             using (SqlConnection conn = getConnection())
             {

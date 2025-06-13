@@ -1,23 +1,43 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <!-- CHANGE OutputType from WinExe to Exe -->
+    <OutputType>Exe</OutputType>
+    <!-- CHANGE TargetFramework from net8.0-windows to net8.0 -->
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
+    <!-- REMOVE UseWindowsForms -->
+    <!-- <UseWindowsForms>true</UseWindowsForms> -->
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Client</RootNamespace>
+    <AssemblyName>Client</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Newtonsoft.Json is already referenced, but ensure it's a PackageReference -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <!-- Add this for HttpClient.GetFromJsonAsync, PostAsJsonAsync, PutAsJsonAsync -->
-    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+    <!-- REMOVE Newtonsoft.Json and System.Net.Http.Json as we're using gRPC -->
+    <!-- <PackageReference Include="Newtonsoft.Json" Version="13.0.3" /> -->
+    <!-- <PackageReference Include="System.Net.Http.Json" Version="8.0.0" /> -->
+
+    <!-- ADD gRPC client packages -->
+    <PackageReference Include="Grpc.Net.Client" Version="2.62.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.63.0">
+      <IncludeAssets>Runtime; Build; Native; ContentFiles; Analyzers; BuildTransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Google.Protobuf" Version="3.26.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Ensure your existing forms and models are included -->
-    <Compile Update="frmContacts.cs">
+    <!-- Define your .proto files for gRPC client generation -->
+    <!-- Ensure these paths are correct relative to the Client project -->
+    <Protobuf Include="..\ContactsApi\Protos\contacts.proto" GrpcServices="Client" />
+    <Protobuf Include="..\ContactsApi\Protos\lookups.proto" GrpcServices="Client" />
+    <Protobuf Include="Protos\google\protobuf\empty.proto" GrpcServices="Client" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- REMOVE all Compile Update and EmbeddedResource Update for Windows Forms files and old Models -->
+    <!-- <Compile Update="frmContacts.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="frmEditContact.cs">
@@ -28,20 +48,9 @@
     </Compile>
     <Compile Update="Models\ContactDto.cs" />
     <Compile Update="Models\LookupDto.cs" />
-    <Compile Update="Models\PersonRequestDto.cs" />
-  </ItemGroup>
+    <Compile Update="Models\PersonRequestDto.cs" /> -->
 
-  <ItemGroup>
-    <!-- Ensure your existing resource and settings files are included -->
-    <EmbeddedResource Update="frmContacts.resx">
-      <DependentUpon>frmContacts.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="frmEditContact.resx">
-      <DependentUpon>frmEditContact.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Update="frmTraceLog.resx">
-      <DependentUpon>frmTraceLog.cs</DependentUpon>
-    </EmbeddedResource>
+    <!-- Keep Properties resources/settings if still needed for console app, but remove if not -->
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

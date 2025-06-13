@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient; // CHANGE THIS LINE from System.Data.SqlClient
 using System.Diagnostics;
-using ContactsApi.Models; // Add this line to use DTOs
+using ContactsApi.Models;
 
 namespace ContactsApi
 {
@@ -14,11 +14,11 @@ namespace ContactsApi
         }
 
         // IMPORTANT: Update this connection string to your actual SQL Server details
+        // For local SQL Express: "Data Source=.\\SQLEXPRESS;Initial Catalog=ContactsDb;Integrated Security=True;TrustServerCertificate=True;"
+        // For Docker/Linux SQL Server: "Server=localhost,1433;Database=ContactsDb;User Id=SA;Password=YourStrongPassword;TrustServerCertificate=True;"
+        // Or retrieve from configuration (e.g., appsettings.json)
         const String connectionString =
-            "server=BAKER\\SQLEXPRESS;" +
-            "Database=personnel;" +
-            "User Id=sa;" +
-            "Password=7529;";
+            "Server=localhost;Database=personnel;User Id=sa;Password=7529;TrustServerCertificate=True;"; // UPDATED connection string
 
         private static SqlConnection getConnection()
         {
@@ -27,89 +27,83 @@ namespace ContactsApi
 
         public static ContactDto GetContact(int uid)
         {
+            ContactDto contact = null;
             using (SqlConnection conn = getConnection())
             {
                 conn.Open();
-                var command = conn.CreateCommand();
-                command.CommandText =
-                    @"select uid,prefixid,first_name,last_name,suffixid,address,city,state,zip
-                    from personnel.dbo.employees 
-                    where uid = @uid;";
-                command.Parameters.AddWithValue("@uid", uid);
-
-                using (SqlDataReader reader = command.ExecuteReader())
+                // UPDATED query and parameter handling
+                SqlCommand cmd = new SqlCommand("SELECT Uid, PrefixId, FirstName, LastName, SuffixId, Address, City, State, Zip FROM Contacts WHERE Uid = @Uid", conn);
+                cmd.Parameters.AddWithValue("@Uid", uid);
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
-                        return new ContactDto
+                        contact = new ContactDto
                         {
-                            Uid = reader.GetInt32(reader.GetOrdinal("uid")),
-                            PrefixId = reader.GetInt32(reader.GetOrdinal("prefixid")),
-                            FirstName = reader.GetString(reader.GetOrdinal("first_name")),
-                            LastName = reader.GetString(reader.GetOrdinal("last_name")),
-                            SuffixId = reader.GetInt32(reader.GetOrdinal("suffixid")),
-                            Address = reader.GetString(reader.GetOrdinal("address")),
-                            City = reader.GetString(reader.GetOrdinal("city")),
-                            State = reader.GetString(reader.GetOrdinal("state")),
-                            Zip = reader.GetString(reader.GetOrdinal("zip"))
+                            Uid = reader.GetInt32(0),
+                            PrefixId = reader.GetInt32(1),
+                            FirstName = reader.GetString(2),
+                            LastName = reader.GetString(3),
+                            SuffixId = reader.GetInt32(4),
+                            Address = reader.IsDBNull(5) ? null : reader.GetString(5), // Handle DBNull
+                            City = reader.IsDBNull(6) ? null : reader.GetString(6),     // Handle DBNull
+                            State = reader.IsDBNull(7) ? null : reader.GetString(7),   // Handle DBNull
+                            Zip = reader.IsDBNull(8) ? null : reader.GetString(8)       // Handle DBNull
                         };
                     }
-                    return null;
                 }
             }
+            return contact;
         }
 
         public static List<ContactDto> GetAllContacts()
         {
             System.Diagnostics.Trace.WriteLine("Refreshing contacts.");
 
+            List<ContactDto> contacts = new List<ContactDto>();
             using (SqlConnection conn = getConnection())
             {
                 conn.Open();
-                SqlCommand command = conn.CreateCommand();
-                command.CommandText =
-                    @"select uid,prefixid,first_name,last_name,suffixid,address,city,state,zip
-                    from personnel.dbo.employees;";
-
-                List<ContactDto> contacts = new List<ContactDto>();
-                using (SqlDataReader reader = command.ExecuteReader())
+                // UPDATED query
+                SqlCommand cmd = new SqlCommand("SELECT Uid, PrefixId, FirstName, LastName, SuffixId, Address, City, State, Zip FROM Contacts", conn);
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         contacts.Add(new ContactDto
                         {
-                            Uid = reader.GetInt32(reader.GetOrdinal("uid")),
-                            PrefixId = reader.GetInt32(reader.GetOrdinal("prefixid")),
-                            FirstName = reader.GetString(reader.GetOrdinal("first_name")),
-                            LastName = reader.GetString(reader.GetOrdinal("last_name")),
-                            SuffixId = reader.GetInt32(reader.GetOrdinal("suffixid")),
-                            Address = reader.GetString(reader.GetOrdinal("address")),
-                            City = reader.GetString(reader.GetOrdinal("city")),
-                            State = reader.GetString(reader.GetOrdinal("state")),
-                            Zip = reader.GetString(reader.GetOrdinal("zip"))
+                            Uid = reader.GetInt32(0),
+                            PrefixId = reader.GetInt32(1),
+                            FirstName = reader.GetString(2),
+                            LastName = reader.GetString(3),
+                            SuffixId = reader.GetInt32(4),
+                            Address = reader.IsDBNull(5) ? null : reader.GetString(5),
+                            City = reader.IsDBNull(6) ? null : reader.GetString(6),
+                            State = reader.IsDBNull(7) ? null : reader.GetString(7),
+                            Zip = reader.IsDBNull(8) ? null : reader.GetString(8)
                         });
                     }
                 }
-                return contacts;
             }
+            return contacts;
         }
 
         public static List<LookupDto> GetPrefixes()
         {
+            List<LookupDto> prefixes = new List<LookupDto>();
             using (SqlConnection conn = getConnection())
             {
                 conn.Open();
-                const String query = "select * from personnel.prefixes";
-                SqlCommand command = new SqlCommand(query, conn);
-                List<LookupDto> prefixes = new List<LookupDto>();
-                using (SqlDataReader reader = command.ExecuteReader())
+                // UPDATED query
+                SqlCommand cmd = new SqlCommand("SELECT Id, Description FROM Prefixes", conn);
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         prefixes.Add(new LookupDto
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("prefixid")),
-                            Description = reader.GetString(reader.GetOrdinal("description"))
+                            Id = reader.GetInt32(0),
+                            Description = reader.GetString(1)
                         });
                     }
                 }
@@ -119,20 +113,20 @@ namespace ContactsApi
 
         public static List<LookupDto> GetSuffixes()
         {
+            List<LookupDto> suffixes = new List<LookupDto>();
             using (SqlConnection conn = getConnection())
             {
                 conn.Open();
-                const String query = "select * from personnel.suffixes";
-                SqlCommand command = new SqlCommand(query, conn);
-                List<LookupDto> suffixes = new List<LookupDto>();
-                using (SqlDataReader reader = command.ExecuteReader())
+                // UPDATED query
+                SqlCommand cmd = new SqlCommand("SELECT Id, Description FROM Suffixes", conn);
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         suffixes.Add(new LookupDto
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("suffixid")),
-                            Description = reader.GetString(reader.GetOrdinal("description"))
+                            Id = reader.GetInt32(0),
+                            Description = reader.GetString(1)
                         });
                     }
                 }
@@ -140,53 +134,48 @@ namespace ContactsApi
             }
         }
 
+        // UPDATED signature to include Address, City, State, Zip
         public static void UpdateContact(Int32 uid, String firstName, String lastName, Int32 prefix, Int32 suffix, String address, String city, String state, String zip)
         {
             using (SqlConnection conn = getConnection())
             {
                 conn.Open();
-                const String query =
-                    @"UPDATE personnel.dbo.employees 
-                      SET prefixid = @prefixid, first_name = @firstName, last_name = @lastName, 
-                          suffixid = @suffixid, address = @address, city = @city, state = @state, zip = @zip
-                      WHERE uid = @uid;";
+                // UPDATED query and parameters
+                SqlCommand cmd = new SqlCommand(
+                    "UPDATE Contacts SET FirstName = @FirstName, LastName = @LastName, PrefixId = @PrefixId, SuffixId = @SuffixId, Address = @Address, City = @City, State = @State, Zip = @Zip WHERE Uid = @Uid", conn);
+                cmd.Parameters.AddWithValue("@Uid", uid);
+                cmd.Parameters.AddWithValue("@FirstName", firstName);
+                cmd.Parameters.AddWithValue("@LastName", lastName);
+                cmd.Parameters.AddWithValue("@PrefixId", prefix);
+                cmd.Parameters.AddWithValue("@SuffixId", suffix);
+                cmd.Parameters.AddWithValue("@Address", (object)address ?? DBNull.Value); // Handle nulls for optional fields
+                cmd.Parameters.AddWithValue("@City", (object)city ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@State", (object)state ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Zip", (object)zip ?? DBNull.Value);
 
-                SqlCommand command = new SqlCommand(query, conn);
-                command.Parameters.AddWithValue("@uid", uid);
-                command.Parameters.AddWithValue("@prefixid", prefix);
-                command.Parameters.AddWithValue("@firstName", firstName);
-                command.Parameters.AddWithValue("@lastName", lastName);
-                command.Parameters.AddWithValue("@suffixid", suffix);
-                command.Parameters.AddWithValue("@address", address);
-                command.Parameters.AddWithValue("@city", city);
-                command.Parameters.AddWithValue("@state", state);
-                command.Parameters.AddWithValue("@zip", zip);
-
-                command.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
             }
         }
 
+        // UPDATED signature to include Address, City, State, Zip
         public static void InsertContact(String firstName, String lastName, Int32 prefix, Int32 suffix, String address, String city, String state, String zip)
         {
             using (SqlConnection conn = getConnection())
             {
                 conn.Open();
-                const String query =
-                    @"INSERT INTO personnel.dbo.employees 
-                      (prefixid, first_name, last_name, suffixid, address, city, state, zip)
-                      VALUES (@prefixid, @firstName, @lastName, @suffixid, @address, @city, @state, @zip);";
+                // UPDATED query and parameters
+                SqlCommand cmd = new SqlCommand(
+                    "INSERT INTO Contacts (FirstName, LastName, PrefixId, SuffixId, Address, City, State, Zip) VALUES (@FirstName, @LastName, @PrefixId, @SuffixId, @Address, @City, @State, @Zip)", conn);
+                cmd.Parameters.AddWithValue("@FirstName", firstName);
+                cmd.Parameters.AddWithValue("@LastName", lastName);
+                cmd.Parameters.AddWithValue("@PrefixId", prefix);
+                cmd.Parameters.AddWithValue("@SuffixId", suffix);
+                cmd.Parameters.AddWithValue("@Address", (object)address ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@City", (object)city ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@State", (object)state ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Zip", (object)zip ?? DBNull.Value);
 
-                SqlCommand command = new SqlCommand(query, conn);
-                command.Parameters.AddWithValue("@prefixid", prefix);
-                command.Parameters.AddWithValue("@firstName", firstName);
-                command.Parameters.AddWithValue("@lastName", lastName);
-                command.Parameters.AddWithValue("@suffixid", suffix);
-                command.Parameters.AddWithValue("@address", address);
-                command.Parameters.AddWithValue("@city", city);
-                command.Parameters.AddWithValue("@state", state);
-                command.Parameters.AddWithValue("@zip", zip);
-
-                command.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
             }
         }
     }

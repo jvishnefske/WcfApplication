@@ -2,8 +2,8 @@ namespace ContactsApi.Models
 {
     public class PersonRequestDto
     {
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
+        public string FirstName { get; set; } = string.Empty; // Make non-nullable and initialize
+        public string LastName { get; set; } = string.Empty;  // Make non-nullable and initialize
         public int PrefixId { get; set; }
         public int SuffixId { get; set; }
         public string? Address { get; set; }

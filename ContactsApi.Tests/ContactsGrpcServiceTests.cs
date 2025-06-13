@@ -121,21 +121,24 @@ namespace ContactsApi.Tests
 
         public static TestServerCallContext Create() => new TestServerCallContext();
 
-        // Corrected implementation for abstract members
-        protected override ContextPropagationToken CreateContextPropagationTokenCore(ContextPropagationOptions? options) => throw new NotImplementedException();
-        protected override string MethodCore => "Test";
-        protected override string HostCore => "localhost";
-        protected override string PeerCore => "localhost";
-        protected override DateTime DeadlineCore => DateTime.MaxValue;
-        protected override Metadata RequestHeadersCore => new Metadata();
-        protected override CancellationToken CancellationTokenCore => CancellationToken.None;
-        protected override Metadata ResponseHeadersCore { get; set; } = new Metadata();
-        protected override WriteOptions? WriteOptionsCore { get; set; }
+        // Abstract properties
         protected override AuthContext AuthContextCore => new AuthContext(null, new List<AuthProperty>());
+        protected override CancellationToken CancellationTokenCore => CancellationToken.None;
+        protected override DateTime DeadlineCore => DateTime.MaxValue;
+        protected override string HostCore => "localhost";
+        protected override string MethodCore => "Test";
+        protected override string PeerCore => "localhost";
+        protected override Metadata RequestHeadersCore => new Metadata();
+        protected override Metadata ResponseHeadersCore { get; set; } = new Metadata();
+        protected override Metadata ResponseTrailersCore { get; } = new Metadata();
+        protected override Status StatusCore { get; set; }
+        protected override WriteOptions? WriteOptionsCore { get; set; }
 
-        // Corrected StatusCore and ResponseTrailersCore implementations
-        protected override Status StatusCore { get; set; } // Must have a public setter
-        protected override Metadata ResponseTrailersCore { get; } = new Metadata(); // Must have a public getter
+        // Abstract methods
+        protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
+        {
+            throw new NotImplementedException();
+        }
 
         protected override Task WriteResponseHeadersAsyncCore(Metadata responseHeaders)
         {
@@ -143,8 +146,14 @@ namespace ContactsApi.Tests
             return Task.CompletedTask;
         }
 
-        // Corrected ReadMessageCore and WriteMessageCore to avoid internal types
-        protected override Task<byte[]> ReadMessageCore() => throw new NotImplementedException();
-        protected override Task WriteMessageCore(byte[] message, WriteOptions writeOptions) => throw new NotImplementedException();
+        protected override Task<byte[]> ReadMessageCore()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task WriteMessageCore(byte[] message, WriteOptions writeOptions)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

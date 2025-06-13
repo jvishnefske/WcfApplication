@@ -7,8 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" /> <!-- Add this for SQL connectivity -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.62.0" />
+    <!-- ADD THIS LINE for SQLite -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.4" /> 
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\contacts.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\lookups.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

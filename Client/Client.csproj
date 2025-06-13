@@ -32,7 +32,7 @@
     <!-- Ensure these paths are correct relative to the Client project -->
     <Protobuf Include="..\ContactsApi\Protos\contacts.proto" GrpcServices="Client" />
     <Protobuf Include="..\ContactsApi\Protos\lookups.proto" GrpcServices="Client" />
-    <Protobuf Include="Protos\google\protobuf\empty.proto" GrpcServices="Client" />
+    <!-- REMOVED: <Protobuf Include="Protos\google\protobuf\empty.proto" GrpcServices="Client" /> -->
   </ItemGroup>
 
   <ItemGroup>
@@ -45,7 +45,7 @@
     </Compile>
     <Compile Update="frmTraceLog.cs">
       <SubType>Form</SubType>
-    </Compile>
+    </EmbeddedResource>
     <Compile Update="Models\ContactDto.cs" />
     <Compile Update="Models\LookupDto.cs" />
     <Compile Update="Models\PersonRequestDto.cs" /> -->

@@ -4,18 +4,41 @@ option csharp_namespace = "ContactsApi.Grpc";
 
 package contacts;
 
-// Define your contact-related messages and services here
-// For example:
-// message Contact {
-//   string id = 1;
-//   string name = 2;
-//   string email = 3;
-// }
+import "google/protobuf/empty.proto";
 
-// service ContactService {
-//   rpc GetContact (GetContactRequest) returns (Contact);
-// }
+// Messages for Contacts
+message Contact {
+  int32 uid = 1;
+  string first_name = 2;
+  string last_name = 3;
+  int32 prefix_id = 4;
+  int32 suffix_id = 5;
+}
 
-// message GetContactRequest {
-//   string id = 1;
-// }
+message PersonRequest {
+  string first_name = 1;
+  string last_name = 2;
+  int32 prefix_id = 3;
+  int32 suffix_id = 4;
+}
+
+message OperationResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetContactRequest {
+  int32 uid = 1;
+}
+
+message GetAllContactsResponse {
+  repeated Contact contacts = 1;
+}
+
+// Service for Contacts
+service ContactsService {
+  rpc GetAllContacts (google.protobuf.Empty) returns (GetAllContactsResponse);
+  rpc GetContact (GetContactRequest) returns (Contact);
+  rpc InsertContact (PersonRequest) returns (OperationResponse);
+  rpc UpdateContact (Contact) returns (OperationResponse);
+}

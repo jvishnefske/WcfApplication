@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration; // ADD THIS USING
 using System.Threading;
 using System;
 //using Grpc.Net.Client.Testing; 
@@ -25,7 +25,28 @@ namespace ContactsApi.Tests
         public ContactsGrpcServiceTests()
         {
             _loggerMock = new Mock<ILogger<ContactsGrpcService>>();
-            _utilitiesMock = new Mock<Utilities>(MockBehavior.Strict, new Mock<IConfiguration>().Object); 
+            
+            // Create a mock IConfiguration that returns a connection string.
+            // This is necessary because the real Utilities constructor (which Moq might call
+            // when creating the mock of Utilities) expects a valid IConfiguration.
+            var mockConfig = new Mock<IConfiguration>();
+            // Mock the GetConnectionString extension method by setting up the underlying GetSection calls.
+            // This is a common pattern for mocking IConfiguration.GetConnectionString.
+            var connectionStringsSection = new Mock<IConfigurationSection>();
+            connectionStringsSection.Setup(s => s.GetSection("DefaultConnection")).Returns(new Mock<IConfigurationSection>().Object);
+            connectionStringsSection.Setup(s => s.GetSection("DefaultConnection").Value).Returns("DataSource=:memory:");
+            mockConfig.Setup(c => c.GetSection("ConnectionStrings")).Returns(connectionStringsSection.Object);
+
+            // Initialize _utilitiesMock, passing the configured mockConfig to its constructor.
+            // Moq will create a proxy for Utilities, and its constructor will be invoked with mockConfig.
+            // We use MockBehavior.Default (which is loose) to avoid needing to set up every method.
+            _utilitiesMock = new Mock<Utilities>(mockConfig.Object); 
+
+            // Setup specific methods that ContactsGrpcService will call on Utilities.
+            // Example: _utilitiesMock.Setup(u => u.GetAllContactsAsync()).ReturnsAsync(new List<ContactDto>());
+            // You will need to add specific setups here for each Utilities method called by ContactsGrpcService.
+            // For now, let's ensure the constructor issue is resolved.
+
             _service = new ContactsGrpcService(_loggerMock.Object, _utilitiesMock.Object);
         }
 
@@ -38,6 +59,7 @@ namespace ContactsApi.Tests
                 new ContactDto { Uid = 1, FirstName = "John", LastName = "Doe", PrefixId = 1, SuffixId = 1, Address = "123 Main", City = "Anytown", State = "CA", Zip = "90210" },
                 new ContactDto { Uid = 2, FirstName = "Jane", LastName = "Smith", PrefixId = 2, SuffixId = 2, Address = "456 Oak", City = "Otherville", State = "NY", Zip = "10001" }
             };
+            // Setup the mocked Utilities method
             _utilitiesMock.Setup(u => u.GetAllContactsAsync()).ReturnsAsync(mockContacts);
 
             // Act
@@ -57,6 +79,7 @@ namespace ContactsApi.Tests
         {
             // Arrange
             var mockContact = new ContactDto { Uid = 1, FirstName = "John", LastName = "Doe", PrefixId = 1, SuffixId = 1, Address = "123 Main", City = "Anytown", State = "CA", Zip = "90210" };
+            // Setup the mocked Utilities method
             _utilitiesMock.Setup(u => u.GetContactAsync(1)).ReturnsAsync(mockContact);
 
             // Act
@@ -75,6 +98,7 @@ namespace ContactsApi.Tests
         public async Task GetContact_ThrowsNotFoundForNonExistentContact()
         {
             // Arrange
+            // Setup the mocked Utilities method
             _utilitiesMock.Setup(u => u.GetContactAsync(999)).ReturnsAsync((ContactDto?)null);
 
             // Act & Assert
@@ -90,6 +114,7 @@ namespace ContactsApi.Tests
         {
             // Arrange
             var personRequest = new PersonRequest { FirstName = "New", LastName = "Person", PrefixId = 1, SuffixId = 1, Address = "A", City = "B", State = "C", Zip = "D" };
+            // Setup the mocked Utilities method
             _utilitiesMock.Setup(u => u.InsertContactAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Returns(Task.CompletedTask);
 
@@ -108,6 +133,7 @@ namespace ContactsApi.Tests
         {
             // Arrange
             var contact = new Contact { Uid = 1, FirstName = "Updated", LastName = "Name", PrefixId = 1, SuffixId = 1, Address = "A", City = "B", State = "C", Zip = "D" };
+            // Setup the mocked Utilities method
             _utilitiesMock.Setup(u => u.UpdateContactAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Returns(Task.CompletedTask);
 

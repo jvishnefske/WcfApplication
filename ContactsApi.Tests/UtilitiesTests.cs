@@ -1,9 +1,9 @@
 using Xunit;
 using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration; // ADD THIS USING
 using Moq;
 using ContactsApi.Models;
-using System.Collections.Generic;
+using System.Collections.Generic; // ADD THIS USING
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -12,7 +12,7 @@ namespace ContactsApi.Tests
     public class UtilitiesTests : IDisposable
     {
         private readonly SqliteConnection _connection;
-        private readonly Utilities _utilities;
+        private readonly Utilities _utilities; // Changed from Mock<Utilities>
 
         public UtilitiesTests()
         {
@@ -20,12 +20,16 @@ namespace ContactsApi.Tests
             _connection = new SqliteConnection("DataSource=:memory:");
             _connection.Open(); // Open the connection immediately
 
-            // Mock IConfiguration to provide the in-memory connection string
-            var configurationMock = new Mock<IConfiguration>();
-            configurationMock.Setup(c => c.GetConnectionString("DefaultConnection"))
-                             .Returns(_connection.ConnectionString);
+            // Create a real IConfiguration instance with an in-memory connection string
+            var inMemorySettings = new Dictionary<string, string> {
+                {"ConnectionStrings:DefaultConnection", _connection.ConnectionString}
+            };
+            IConfiguration configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(inMemorySettings)
+                .Build();
 
-            _utilities = new Utilities(configurationMock.Object);
+            // Instantiate the real Utilities class with the configured IConfiguration
+            _utilities = new Utilities(configuration);
             
             // Initialize the database schema and populate initial data for tests
             InitializeTestData();

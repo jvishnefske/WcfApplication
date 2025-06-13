@@ -37,7 +37,7 @@ namespace WcfClient
             dataGridView1.DataSource = contacts;
 
             _httpClient = new HttpClient(); // Initialize HttpClient
-            _httpClient.BaseAddress = new Uri("http://localhost:5000/"); // Set base address for your new Web API
+            _httpClient.BaseAddress = new Uri("https://localhost:7001/"); // Set base address for your new Web API
         }
 
         ~frmContacts() {
@@ -59,11 +59,11 @@ namespace WcfClient
 
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 
-                // Deserialize the JSON response into a list of Contact objects
-                List<Contact> contactList = JsonConvert.DeserializeObject<List<Contact>>(jsonResponse);
+                // Deserialize the JSON response into a list of ContactDto objects
+                List<ContactDto> contactList = JsonConvert.DeserializeObject<List<ContactDto>>(jsonResponse);
 
                 // Convert the list of contacts to a DataTable for display
-                contacts = Contact.ToDataTable(contactList);
+                contacts = ContactDto.ToDataTable(contactList);
                 
                 lblStatus.Text = "complete";
                 dataGridView1.DataSource = contacts;
@@ -95,13 +95,42 @@ namespace WcfClient
         // Changed to async void for event handler
         private async void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            await updateContacts();
+            // Check if a valid row and column were clicked
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                // Get the UID from the clicked row
+                if (dataGridView1.Rows[e.RowIndex].Cells["uid"].Value != null)
+                {
+                    int contactUid = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["uid"].Value);
+                    
+                    // Open the edit form
+                    using (frmEditContact editForm = new frmEditContact(contactUid))
+                    {
+                        if (editForm.ShowDialog() == DialogResult.OK)
+                        {
+                            // If the edit form was saved successfully, refresh the contacts list
+                            await updateContacts();
+                        }
+                    }
+                }
+            }
         }
 
         // Changed to async void for event handler
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
             await updateContacts();
+        }
+
+        private async void btnAddContact_Click(object sender, EventArgs e)
+        {
+            using (frmEditContact addForm = new frmEditContact())
+            {
+                if (addForm.ShowDialog() == DialogResult.OK)
+                {
+                    await updateContacts();
+                }
+            }
         }
     }
 }

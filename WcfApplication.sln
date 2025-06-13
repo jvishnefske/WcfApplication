@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WcfService", "WcfService\WcfService.csproj", "{7E96958B-B681-44CA-8148-404BC06741DF}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WcfClient", "WcfClient\WcfClient.csproj", "{438BC178-C3F8-40AA-9896-3B95BD292692}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContactsApi", "ContactsApi\ContactsApi.csproj", "{YOUR_NEW_CONTACTSAPI_PROJECT_GUID}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7E96958B-B681-44CA-8148-404BC06741DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E96958B-B681-44CA-8148-404BC06741DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7E96958B-B681-44CA-8148-404BC06741DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7E96958B-B681-44CA-8148-404BC06741DF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{438BC178-C3F8-40AA-9896-3B95BD292692}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{438BC178-C3F8-40AA-9896-3B95BD292692}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{438BC178-C3F8-40AA-9896-3B95BD292692}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{438BC178-C3F8-40AA-9896-3B95BD292692}.Release|Any CPU.Build.0 = Release|Any CPU
+		{YOUR_NEW_CONTACTSAPI_PROJECT_GUID}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{YOUR_NEW_CONTACTSAPI_PROJECT_GUID}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{YOUR_NEW_CONTACTSAPI_PROJECT_GUID}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{YOUR_NEW_CONTACTSAPI_PROJECT_GUID}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

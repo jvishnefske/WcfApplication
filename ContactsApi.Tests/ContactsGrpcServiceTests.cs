@@ -30,12 +30,19 @@ namespace ContactsApi.Tests
             // This is necessary because the real Utilities constructor (which Moq might call
             // when creating the mock of Utilities) expects a valid IConfiguration.
             var mockConfig = new Mock<IConfiguration>();
-            // Mock the GetConnectionString extension method by setting up the underlying GetSection calls.
-            // This is a common pattern for mocking IConfiguration.GetConnectionString.
-            var connectionStringsSection = new Mock<IConfigurationSection>();
-            connectionStringsSection.Setup(s => s.GetSection("DefaultConnection")).Returns(new Mock<IConfigurationSection>().Object);
-            connectionStringsSection.Setup(s => s.GetSection("DefaultConnection").Value).Returns("DataSource=:memory:");
-            mockConfig.Setup(c => c.GetSection("ConnectionStrings")).Returns(connectionStringsSection.Object);
+            
+            // --- REVISED IConfiguration MOCK SETUP ---
+            // Mock the "DefaultConnection" section directly
+            var defaultConnectionSectionMock = new Mock<IConfigurationSection>();
+            defaultConnectionSectionMock.Setup(s => s.Value).Returns("DataSource=:memory:");
+
+            // Mock the "ConnectionStrings" section to return the "DefaultConnection" section
+            var connectionStringsSectionMock = new Mock<IConfigurationSection>();
+            connectionStringsSectionMock.Setup(s => s.GetSection("DefaultConnection")).Returns(defaultConnectionSectionMock.Object);
+
+            // Mock the root IConfiguration to return the "ConnectionStrings" section
+            mockConfig.Setup(c => c.GetSection("ConnectionStrings")).Returns(connectionStringsSectionMock.Object);
+            // --- END REVISED IConfiguration MOCK SETUP ---
 
             // Initialize _utilitiesMock, passing the configured mockConfig to its constructor.
             // Moq will create a proxy for Utilities, and its constructor will be invoked with mockConfig.

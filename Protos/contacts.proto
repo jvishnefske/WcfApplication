@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "ContactsApi.Protos";
+option csharp_namespace = "ContactsApi.Grpc";
 
 package contacts;
 

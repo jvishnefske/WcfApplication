@@ -12,7 +12,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.Net.Http; // Added for HttpClient
 using Newtonsoft.Json; // Added for JSON deserialization
-using WcfClient.Models; // Added to use the new Contact model
+using WcfClient.Models; // Now refers to ContactDto, PersonRequestDto, LookupDto
 
 namespace WcfClient
 {
@@ -37,7 +37,7 @@ namespace WcfClient
             dataGridView1.DataSource = contacts;
 
             _httpClient = new HttpClient(); // Initialize HttpClient
-            _httpClient.BaseAddress = new Uri("https://localhost:7001/"); // Set base address for your new Web API
+            _httpClient.BaseAddress = new Uri("https://localhost:7001/"); // Set base address for your new Web API (ASP.NET Core default HTTPS port)
         }
 
         ~frmContacts() {
@@ -61,7 +61,7 @@ namespace WcfClient
                 
                 // Deserialize the JSON response into a list of ContactDto objects
                 List<ContactDto> contactList = JsonConvert.DeserializeObject<List<ContactDto>>(jsonResponse);
-
+                
                 // Convert the list of contacts to a DataTable for display
                 contacts = ContactDto.ToDataTable(contactList);
                 
@@ -89,13 +89,13 @@ namespace WcfClient
         private void label1_Click(object sender, EventArgs e)
         {
             // This event handler seems to be incorrectly wired to updateContacts
-            // If it's meant to refresh, it should call updateContacts()
+            // If it's meant to refresh, it should call updateContacts() - No change needed, just a comment.
         }
 
         // Changed to async void for event handler
-        private async void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e) // Revert to non-async, this event is not for refresh
         {
-            // Check if a valid row and column were clicked
+            // This event is typically for handling clicks on cell content, not for refreshing the entire grid.
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
             {
                 // Get the UID from the clicked row
@@ -109,7 +109,8 @@ namespace WcfClient
                         if (editForm.ShowDialog() == DialogResult.OK)
                         {
                             // If the edit form was saved successfully, refresh the contacts list
-                            await updateContacts();
+                            // This call is now handled by the button click or form load, not cell content click
+                            // await updateContacts(); // Removed as per plan, if refresh is desired here, uncomment and make method async
                         }
                     }
                 }

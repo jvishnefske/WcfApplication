@@ -135,7 +135,8 @@ namespace ContactsApi.Tests
         public static TestServerCallContext Create() => new TestServerCallContext();
 
         // Implement protected abstract properties (all are getter-only except StatusCore and WriteOptionsCore)
-        protected override AuthContext AuthContextCore => new AuthContext(null, new List<AuthProperty>());
+        // CORRECTED: AuthContext constructor's second argument expects a Dictionary, not a List.
+        protected override AuthContext AuthContextCore => new AuthContext(null, new Dictionary<string, List<AuthProperty>>());
         protected override CancellationToken CancellationTokenCore => CancellationToken.None;
         protected override DateTime DeadlineCore => DateTime.MaxValue;
         protected override string HostCore => "localhost";

@@ -6,6 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- ADD THIS NEW PROPERTY GROUP -->
+  <PropertyGroup>
+    <ProtoRoot>$(SolutionDir)Protos\</ProtoRoot>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.62.0" />
@@ -14,8 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\contacts.proto" GrpcServices="Server" />
-    <Protobuf Include="Protos\lookups.proto" GrpcServices="Server" />
+    <!-- UPDATE THESE PATHS -->
+    <Protobuf Include="$(SolutionDir)Protos\contacts.proto" GrpcServices="Server" />
+    <Protobuf Include="$(SolutionDir)Protos\lookups.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

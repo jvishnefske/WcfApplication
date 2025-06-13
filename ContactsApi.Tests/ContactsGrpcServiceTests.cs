@@ -31,16 +31,16 @@ namespace ContactsApi.Tests
             // when creating the mock of Utilities) expects a valid IConfiguration.
             var mockConfig = new Mock<IConfiguration>();
             
-            // --- REVISED IConfiguration MOCK SETUP ---
-            // Mock the "DefaultConnection" section directly
+            // --- REVISED IConfiguration MOCK SETUP for GetConnectionString ---
+            // GetConnectionString("DefaultConnection") internally calls GetSection("ConnectionStrings")
+            // and then GetSection("DefaultConnection") on that result, and then .Value.
+            // We need to mock this chain.
             var defaultConnectionSectionMock = new Mock<IConfigurationSection>();
             defaultConnectionSectionMock.Setup(s => s.Value).Returns("DataSource=:memory:");
 
-            // Mock the "ConnectionStrings" section to return the "DefaultConnection" section
             var connectionStringsSectionMock = new Mock<IConfigurationSection>();
             connectionStringsSectionMock.Setup(s => s.GetSection("DefaultConnection")).Returns(defaultConnectionSectionMock.Object);
 
-            // Mock the root IConfiguration to return the "ConnectionStrings" section
             mockConfig.Setup(c => c.GetSection("ConnectionStrings")).Returns(connectionStringsSectionMock.Object);
             // --- END REVISED IConfiguration MOCK SETUP ---
 

@@ -1,92 +1,90 @@
 using Xunit;
 using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration; // ADD THIS USING
+using Microsoft.Extensions.Configuration;
 using Moq;
 using ContactsApi.Models;
-using System.Collections.Generic; // ADD THIS USING
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System;
 
 namespace ContactsApi.Tests
 {
-    public class UtilitiesTests : IDisposable
+    // Implement IAsyncLifetime for asynchronous setup/teardown
+    public class UtilitiesTests : IAsyncLifetime
     {
         private readonly SqliteConnection _connection;
-        private readonly Utilities _utilities; // Changed from Mock<Utilities>
+        private readonly Utilities _utilities;
+        private readonly IConfiguration _configuration; // Store configuration for Utilities
 
         public UtilitiesTests()
         {
             // Use an in-memory SQLite database for testing
             _connection = new SqliteConnection("DataSource=:memory:");
-            _connection.Open(); // Open the connection immediately
-
+            
             // Create a real IConfiguration instance with an in-memory connection string
-            var inMemorySettings = new Dictionary<string, string> {
+            // Fix CS8620 warning by making values nullable
+            var inMemorySettings = new Dictionary<string, string?> {
                 {"ConnectionStrings:DefaultConnection", _connection.ConnectionString}
             };
-            IConfiguration configuration = new ConfigurationBuilder()
+            _configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
 
             // Instantiate the real Utilities class with the configured IConfiguration
-            _utilities = new Utilities(configuration);
-            
-            // Initialize the database schema and populate initial data for tests
-            InitializeTestData();
+            _utilities = new Utilities(_configuration);
         }
 
-        private void InitializeTestData()
+        // InitializeAsync is called before each test method
+        public async Task InitializeAsync()
         {
-            // Call the synchronous version of InitializeDatabase for test setup
-            // In a real scenario, you might have a dedicated test setup method
-            // or use a test fixture that handles async setup.
-            // For simplicity, we'll use a synchronous setup here.
+            _connection.Open(); // Open the connection for the Utilities class to use
+
+            // Initialize the database schema using the Utilities class's method
+            await _utilities.InitializeDatabaseAsync();
+            
+            // Populate initial data after schema is created
+            await PopulateTestDataAsync();
+        }
+
+        // DisposeAsync is called after each test method
+        public async Task DisposeAsync()
+        {
+            // Clean up data if necessary (optional, as in-memory DB is cleared per test)
+            // For persistent DBs, you might truncate tables here.
+            _connection.Close();
+            await _connection.DisposeAsync(); // Use async dispose
+        }
+
+        private async Task PopulateTestDataAsync()
+        {
             using (var setupConnection = new SqliteConnection(_connection.ConnectionString))
             {
-                setupConnection.Open();
+                await setupConnection.OpenAsync();
                 var command = setupConnection.CreateCommand();
 
-                // Create tables
-                command.CommandText = @"
-                    CREATE TABLE IF NOT EXISTS Contacts (
-                        Uid INTEGER PRIMARY KEY AUTOINCREMENT,
-                        PrefixId INTEGER NOT NULL,
-                        FirstName TEXT NOT NULL,
-                        LastName TEXT NOT NULL,
-                        SuffixId INTEGER NOT NULL,
-                        Address TEXT,
-                        City TEXT,
-                        State TEXT,
-                        Zip TEXT
-                    );
-                    CREATE TABLE IF NOT EXISTS Prefixes (
-                        Id INTEGER PRIMARY KEY,
-                        Description TEXT NOT NULL UNIQUE
-                    );
-                    CREATE TABLE IF NOT EXISTS Suffixes (
-                        Id INTEGER PRIMARY KEY,
-                        Description TEXT NOT NULL UNIQUE
-                    );";
-                command.ExecuteNonQuery();
+                // Clear existing data before populating for a clean test state
+                command.CommandText = "DELETE FROM Contacts; DELETE FROM Prefixes; DELETE FROM Suffixes;";
+                await command.ExecuteNonQueryAsync();
 
                 // Populate Prefixes
                 command.CommandText = @"
-                    INSERT OR IGNORE INTO Prefixes (Id, Description) VALUES
+                    INSERT INTO Prefixes (Id, Description) VALUES
                     (1, 'Mr.'), (2, 'Ms.'), (3, 'Mrs.');";
-                command.ExecuteNonQuery();
+                await command.ExecuteNonQueryAsync();
 
                 // Populate Suffixes
                 command.CommandText = @"
-                    INSERT OR IGNORE INTO Suffixes (Id, Description) VALUES
+                    INSERT INTO Suffixes (Id, Description) VALUES
                     (1, 'Jr.'), (2, 'Sr.');";
-                command.ExecuteNonQuery();
+                await command.ExecuteNonQueryAsync();
 
                 // Populate Contacts
                 command.CommandText = @"
                     INSERT INTO Contacts (PrefixId, FirstName, LastName, SuffixId, Address, City, State, Zip) VALUES
                     (1, 'John', 'Doe', 1, '123 Main St', 'Anytown', 'CA', '90210'),
                     (2, 'Jane', 'Smith', 2, '456 Oak Ave', 'Otherville', 'NY', '10001');";
-                command.ExecuteNonQuery();
+                await command.ExecuteNonQueryAsync();
             }
         }
 
@@ -215,12 +213,6 @@ namespace ContactsApi.Tests
             Assert.Equal(2, suffixes.Count); // Expecting 2 suffixes from setup
             Assert.Contains(suffixes, s => s.Description == "Jr.");
             Assert.Contains(suffixes, s => s.Description == "Sr.");
-        }
-
-        public void Dispose()
-        {
-            _connection.Close();
-            _connection.Dispose();
         }
     }
 }

@@ -36,7 +36,7 @@ namespace ContactsApi.Tests
             var mockContacts = new List<ContactDto>
             {
                 new ContactDto { Uid = 1, FirstName = "John", LastName = "Doe", PrefixId = 1, SuffixId = 1, Address = "123 Main", City = "Anytown", State = "CA", Zip = "90210" },
-                new ContactDto { Uid = 2, FirstName = "Jane", "LastName = "Smith", PrefixId = 2, SuffixId = 2, Address = "456 Oak", City = "Otherville", State = "NY", Zip = "10001" }
+                new ContactDto { Uid = 2, FirstName = "Jane", LastName = "Smith", PrefixId = 2, SuffixId = 2, Address = "456 Oak", City = "Otherville", State = "NY", Zip = "10001" }
             };
             _utilitiesMock.Setup(u => u.GetAllContactsAsync()).ReturnsAsync(mockContacts);
 

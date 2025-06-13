@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Configuration; // Added for Mock<IConfiguration>
 using System.Threading; // Added for CancellationToken
+using System; // Added for NotImplementedException
 
 namespace ContactsApi.Tests
 {
@@ -134,8 +135,8 @@ namespace ContactsApi.Tests
         protected override string MethodCore => "Test";
         protected override string PeerCore => "localhost";
         protected override Metadata RequestHeadersCore => new Metadata();
-        protected override Metadata ResponseHeadersCore { get => _responseHeaders; set => _responseHeaders = value; }
         protected override Metadata ResponseTrailersCore => new Metadata();
+        protected override Metadata ResponseHeadersCore { get => _responseHeaders; set => _responseHeaders = value; }
         protected override Status StatusCore { get => _status; set => _status = value; }
         protected override WriteOptions? WriteOptionsCore { get => _writeOptions; set => _writeOptions = value; }
 
@@ -151,14 +152,13 @@ namespace ContactsApi.Tests
             return Task.CompletedTask;
         }
 
-        // These methods do not take Serializer/Deserializer parameters in the abstract base.
-        // They are for reading/writing raw bytes.
-        protected override Task<byte[]> ReadMessageCore()
+        // These methods must take Deserializer/Serializer parameters as per Grpc.Core 2.x abstract definition
+        protected override Task<byte[]> ReadMessageCore(Grpc.Core.Deserializer<byte[]> deserializer)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task WriteMessageCore(byte[] message, WriteOptions writeOptions)
+        protected override Task WriteMessageCore(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
         {
             throw new NotImplementedException();
         }

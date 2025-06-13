@@ -23,6 +23,9 @@
     <!-- Mocking Framework -->
     <PackageReference Include="Moq" Version="4.20.70" />
 
+    <!-- ADD THIS PACKAGE REFERENCE -->
+    <PackageReference Include="Grpc.Net.Client.Testing" Version="2.62.0" />
+
     <!-- Reference to the project being tested -->
     <ProjectReference Include="..\ContactsApi\ContactsApi.csproj" />
   </ItemGroup>

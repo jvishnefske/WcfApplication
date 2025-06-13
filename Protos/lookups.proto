@@ -4,17 +4,20 @@ option csharp_namespace = "ContactsApi.Grpc";
 
 package lookups;
 
-// Define your lookup-related messages and services here
-// For example:
-// message LookupItem {
-//   string id = 1;
-//   string name = 2;
-// }
+import "google/protobuf/empty.proto";
 
-// service LookupService {
-//   rpc GetLookupItems (GetLookupItemsRequest) returns (stream LookupItem);
-// }
+// Messages for Lookups
+message Lookup {
+  int32 id = 1;
+  string value = 2;
+}
 
-// message GetLookupItemsRequest {
-//   string type = 1;
-// }
+message GetLookupsResponse {
+  repeated Lookup lookups = 1;
+}
+
+// Service for Lookups
+service LookupsService {
+  rpc GetPrefixes (google.protobuf.Empty) returns (GetLookupsResponse);
+  rpc GetSuffixes (google.protobuf.Empty) returns (GetLookupsResponse);
+}

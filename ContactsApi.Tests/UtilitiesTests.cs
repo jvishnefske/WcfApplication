@@ -19,8 +19,8 @@ namespace ContactsApi.Tests
 
         public UtilitiesTests()
         {
-            // Use an in-memory SQLite database for testing
-            _connection = new SqliteConnection("DataSource=:memory:");
+            // Use an in-memory SQLite database for testing with shared cache
+            _connection = new SqliteConnection("DataSource=file::memory:?cache=shared"); // UPDATED CONNECTION STRING
             
             // Create a real IConfiguration instance with an in-memory connection string
             // Fix CS8620 warning by making values nullable

@@ -36,7 +36,7 @@ namespace ContactsApi.Tests
             // and then GetSection("DefaultConnection") on that result, and then .Value.
             // We need to mock this chain.
             var defaultConnectionSectionMock = new Mock<IConfigurationSection>();
-            defaultConnectionSectionMock.Setup(s => s.Value).Returns("DataSource=:memory:");
+            defaultConnectionSectionMock.Setup(s => s.Value).Returns("DataSource=file::memory:?cache=shared"); // UPDATED CONNECTION STRING
 
             var connectionStringsSectionMock = new Mock<IConfigurationSection>();
             connectionStringsSectionMock.Setup(s => s.GetSection("DefaultConnection")).Returns(defaultConnectionSectionMock.Object);

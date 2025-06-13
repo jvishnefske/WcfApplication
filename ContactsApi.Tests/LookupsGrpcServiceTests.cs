@@ -9,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using Microsoft.Extensions.Configuration; // Added for Mock<IConfiguration>
+using Microsoft.Extensions.Configuration;
 
 namespace ContactsApi.Tests
 {
@@ -22,7 +22,21 @@ namespace ContactsApi.Tests
         public LookupsGrpcServiceTests()
         {
             _loggerMock = new Mock<ILogger<LookupsGrpcService>>();
-            _utilitiesMock = new Mock<Utilities>(MockBehavior.Strict, new Mock<IConfiguration>().Object); // Pass a mock IConfiguration
+            
+            var mockConfig = new Mock<IConfiguration>();
+            // --- REVISED IConfiguration MOCK SETUP for GetConnectionString ---
+            // Directly mock the IConfiguration indexer that GetConnectionString uses.
+            mockConfig.SetupGet(c => c["ConnectionStrings:DefaultConnection"])
+                      .Returns("DataSource=file::memory:?cache=shared");
+            // --- END REVISED IConfiguration MOCK SETUP ---
+
+            // Initialize _utilitiesMock, passing the configured mockConfig to its constructor.
+            _utilitiesMock = new Mock<Utilities>(mockConfig.Object); 
+
+            // Setup default behaviors for Utilities methods called by LookupsGrpcService
+            _utilitiesMock.Setup(u => u.GetPrefixesAsync()).ReturnsAsync(new List<LookupDto>());
+            _utilitiesMock.Setup(u => u.GetSuffixesAsync()).ReturnsAsync(new List<LookupDto>());
+
             _service = new LookupsGrpcService(_loggerMock.Object, _utilitiesMock.Object);
         }
 
@@ -35,6 +49,7 @@ namespace ContactsApi.Tests
                 new LookupDto { Id = 1, Description = "Mr." },
                 new LookupDto { Id = 2, Description = "Ms." }
             };
+            // Override the default setup for this specific test
             _utilitiesMock.Setup(u => u.GetPrefixesAsync()).ReturnsAsync(mockPrefixes);
 
             // Act
@@ -57,6 +72,7 @@ namespace ContactsApi.Tests
                 new LookupDto { Id = 1, Description = "Jr." },
                 new LookupDto { Id = 2, Description = "Sr." }
             };
+            // Override the default setup for this specific test
             _utilitiesMock.Setup(u => u.GetSuffixesAsync()).ReturnsAsync(mockSuffixes);
 
             // Act

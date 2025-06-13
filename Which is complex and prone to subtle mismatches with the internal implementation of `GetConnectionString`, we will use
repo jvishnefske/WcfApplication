@@ -1,0 +1,2 @@
+mockConfig.Setup(c => c[It.Is<string>(key => key == "ConnectionStrings:DefaultConnection")])
+          .Returns("DataSource=file::memory:?cache=shared");

@@ -1,6 +1,6 @@
 using Xunit;
 using Moq;
-using Grpc.Core; // Ensure this is present
+using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using ContactsApi.Services;
 using ContactsApi.Grpc;
@@ -9,10 +9,9 @@ using Google.Protobuf.WellKnownTypes;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using Microsoft.Extensions.Configuration; // ADD THIS USING
+using Microsoft.Extensions.Configuration;
 using System.Threading;
 using System;
-//using Grpc.Net.Client.Testing; 
 
 namespace ContactsApi.Tests
 {
@@ -26,33 +25,25 @@ namespace ContactsApi.Tests
         {
             _loggerMock = new Mock<ILogger<ContactsGrpcService>>();
             
-            // Create a mock IConfiguration that returns a connection string.
-            // This is necessary because the real Utilities constructor (which Moq might call
-            // when creating the mock of Utilities) expects a valid IConfiguration.
             var mockConfig = new Mock<IConfiguration>();
             
             // --- REVISED IConfiguration MOCK SETUP for GetConnectionString ---
-            // GetConnectionString("DefaultConnection") internally calls GetSection("ConnectionStrings")
-            // and then GetSection("DefaultConnection") on that result, and then .Value.
-            // We need to mock this chain.
-            var defaultConnectionSectionMock = new Mock<IConfigurationSection>();
-            defaultConnectionSectionMock.Setup(s => s.Value).Returns("DataSource=file::memory:?cache=shared"); // UPDATED CONNECTION STRING
-
-            var connectionStringsSectionMock = new Mock<IConfigurationSection>();
-            connectionStringsSectionMock.Setup(s => s.GetSection("DefaultConnection")).Returns(defaultConnectionSectionMock.Object);
-
-            mockConfig.Setup(c => c.GetSection("ConnectionStrings")).Returns(connectionStringsSectionMock.Object);
+            // Directly mock the IConfiguration indexer that GetConnectionString uses.
+            mockConfig.SetupGet(c => c["ConnectionStrings:DefaultConnection"])
+                      .Returns("DataSource=file::memory:?cache=shared");
             // --- END REVISED IConfiguration MOCK SETUP ---
 
             // Initialize _utilitiesMock, passing the configured mockConfig to its constructor.
-            // Moq will create a proxy for Utilities, and its constructor will be invoked with mockConfig.
-            // We use MockBehavior.Default (which is loose) to avoid needing to set up every method.
             _utilitiesMock = new Mock<Utilities>(mockConfig.Object); 
 
             // Setup specific methods that ContactsGrpcService will call on Utilities.
-            // Example: _utilitiesMock.Setup(u => u.GetAllContactsAsync()).ReturnsAsync(new List<ContactDto>());
-            // You will need to add specific setups here for each Utilities method called by ContactsGrpcService.
-            // For now, let's ensure the constructor issue is resolved.
+            // These setups are crucial for the tests to pass, as the service calls these methods.
+            _utilitiesMock.Setup(u => u.GetAllContactsAsync()).ReturnsAsync(new List<ContactDto>());
+            _utilitiesMock.Setup(u => u.GetContactAsync(It.IsAny<int>())).ReturnsAsync((ContactDto?)null); // Default for non-existent
+            _utilitiesMock.Setup(u => u.InsertContactAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                          .Returns(Task.CompletedTask);
+            _utilitiesMock.Setup(u => u.UpdateContactAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                          .Returns(Task.CompletedTask);
 
             _service = new ContactsGrpcService(_loggerMock.Object, _utilitiesMock.Object);
         }
@@ -66,11 +57,10 @@ namespace ContactsApi.Tests
                 new ContactDto { Uid = 1, FirstName = "John", LastName = "Doe", PrefixId = 1, SuffixId = 1, Address = "123 Main", City = "Anytown", State = "CA", Zip = "90210" },
                 new ContactDto { Uid = 2, FirstName = "Jane", LastName = "Smith", PrefixId = 2, SuffixId = 2, Address = "456 Oak", City = "Otherville", State = "NY", Zip = "10001" }
             };
-            // Setup the mocked Utilities method
+            // Override the default setup for this specific test
             _utilitiesMock.Setup(u => u.GetAllContactsAsync()).ReturnsAsync(mockContacts);
 
             // Act
-            // Use the custom TestServerCallContext
             var response = await _service.GetAllContacts(new Empty(), TestServerCallContext.Create());
 
             // Assert
@@ -86,12 +76,11 @@ namespace ContactsApi.Tests
         {
             // Arrange
             var mockContact = new ContactDto { Uid = 1, FirstName = "John", LastName = "Doe", PrefixId = 1, SuffixId = 1, Address = "123 Main", City = "Anytown", State = "CA", Zip = "90210" };
-            // Setup the mocked Utilities method
+            // Override the default setup for this specific test
             _utilitiesMock.Setup(u => u.GetContactAsync(1)).ReturnsAsync(mockContact);
 
             // Act
             var request = new GetContactRequest { Uid = 1 };
-            // Use the custom TestServerCallContext
             var contact = await _service.GetContact(request, TestServerCallContext.Create());
 
             // Assert
@@ -105,12 +94,11 @@ namespace ContactsApi.Tests
         public async Task GetContact_ThrowsNotFoundForNonExistentContact()
         {
             // Arrange
-            // Setup the mocked Utilities method
-            _utilitiesMock.Setup(u => u.GetContactAsync(999)).ReturnsAsync((ContactDto?)null);
+            // The default setup for GetContactAsync already returns null, which is what we want for this test.
+            // No specific override needed here.
 
             // Act & Assert
             var request = new GetContactRequest { Uid = 999 };
-            // Use the custom TestServerCallContext
             var exception = await Assert.ThrowsAsync<RpcException>(() => _service.GetContact(request, TestServerCallContext.Create()));
             Assert.Equal(StatusCode.NotFound, exception.Status.StatusCode);
             _utilitiesMock.Verify(u => u.GetContactAsync(999), Times.Once);
@@ -121,12 +109,10 @@ namespace ContactsApi.Tests
         {
             // Arrange
             var personRequest = new PersonRequest { FirstName = "New", LastName = "Person", PrefixId = 1, SuffixId = 1, Address = "A", City = "B", State = "C", Zip = "D" };
-            // Setup the mocked Utilities method
-            _utilitiesMock.Setup(u => u.InsertContactAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                          .Returns(Task.CompletedTask);
+            // The default setup for InsertContactAsync already returns Task.CompletedTask.
+            // No specific override needed here.
 
             // Act
-            // Use the custom TestServerCallContext
             var response = await _service.InsertContact(personRequest, TestServerCallContext.Create());
 
             // Assert
@@ -140,12 +126,10 @@ namespace ContactsApi.Tests
         {
             // Arrange
             var contact = new Contact { Uid = 1, FirstName = "Updated", LastName = "Name", PrefixId = 1, SuffixId = 1, Address = "A", City = "B", State = "C", Zip = "D" };
-            // Setup the mocked Utilities method
-            _utilitiesMock.Setup(u => u.UpdateContactAsync(It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                          .Returns(Task.CompletedTask);
+            // The default setup for UpdateContactAsync already returns Task.CompletedTask.
+            // No specific override needed here.
 
             // Act
-            // Use the custom TestServerCallContext
             var response = await _service.UpdateContact(contact, TestServerCallContext.Create());
 
             // Assert
@@ -168,7 +152,6 @@ namespace ContactsApi.Tests
         public static TestServerCallContext Create() => new TestServerCallContext();
 
         // Implement protected abstract properties (all are getter-only except StatusCore and WriteOptionsCore)
-        // CORRECTED: AuthContext constructor's second argument expects a Dictionary, not a List.
         protected override AuthContext AuthContextCore => new AuthContext(null, new Dictionary<string, List<AuthProperty>>());
         protected override CancellationToken CancellationTokenCore => CancellationToken.None;
         protected override DateTime DeadlineCore => DateTime.MaxValue;
@@ -178,9 +161,6 @@ namespace ContactsApi.Tests
         protected override Metadata RequestHeadersCore => new Metadata();
         protected override Metadata ResponseTrailersCore => new Metadata(); 
 
-        // Corrected: ResponseHeadersCore is getter-only in the abstract base.
-        // We will store the headers in the private _responseHeaders field when WriteResponseHeadersAsyncCore is called.
-
         // These properties must have both get and set, and match the abstract signature
         protected override Status StatusCore { get => _status; set => _status = value; }
         protected override WriteOptions? WriteOptionsCore { get => _writeOptions; set => _writeOptions = value; }
@@ -188,21 +168,16 @@ namespace ContactsApi.Tests
         // Implement protected abstract methods
         protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
         {
-            // This method is abstract in Grpc.Core 2.x.
-            // For testing, it's usually safe to throw NotImplementedException if not directly used.
             throw new NotImplementedException();
         }
 
         protected override Task WriteResponseHeadersAsyncCore(Metadata responseHeaders)
         {
-            // This method is called by the gRPC infrastructure to set response headers.
-            // We store them in our private field.
             _responseHeaders = responseHeaders; 
             return Task.CompletedTask;
         }
 
-        // CORRECTED: ReadMessageCore and WriteMessageCore *DO* take Serializer/Deserializer parameters in Grpc.Core 2.x abstract definition
-        // Removed incorrect namespace prefix 'ContactsApi.Grpc.'
+        // These methods are commented out as they are not used by the current tests
         //protected override Task<byte[]> ReadMessageCore(Grpc.Core.Deserializer<byte[]> deserializer)
         //{
         //    throw new NotImplementedException();

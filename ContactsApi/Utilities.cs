@@ -170,7 +170,7 @@ namespace ContactsApi
                         prefixes.Add(new LookupDto
                         {
                             Id = reader.GetInt32(0),
-                            Description = reader.GetString(1)
+                            Description = reader.IsDBNull(1) ? null : reader.GetString(1) // Handle potential null
                         });
                     }
                 }
@@ -192,7 +192,7 @@ namespace ContactsApi
                         suffixes.Add(new LookupDto
                         {
                             Id = reader.GetInt32(0),
-                            Description = reader.GetString(1)
+                            Description = reader.IsDBNull(1) ? null : reader.GetString(1) // Handle potential null
                         });
                     }
                 }
@@ -200,7 +200,7 @@ namespace ContactsApi
             }
         }
 
-        public async Task UpdateContactAsync(Int32 uid, String firstName, String lastName, Int32 prefix, Int32 suffix, String address, String city, String state, String zip) // CHANGED TO ASYNC
+        public async Task UpdateContactAsync(Int32 uid, String firstName, String lastName, Int32 prefix, Int32 suffix, String? address, String? city, String? state, String? zip) // CHANGED TO NULLABLE STRINGS
         {
             using (SqliteConnection conn = getConnection())
             {
@@ -212,16 +212,16 @@ namespace ContactsApi
                 cmd.Parameters.AddWithValue("@LastName", lastName);
                 cmd.Parameters.AddWithValue("@PrefixId", prefix);
                 cmd.Parameters.AddWithValue("@SuffixId", suffix);
-                cmd.Parameters.AddWithValue("@Address", address); // SQLite handles null directly
-                cmd.Parameters.AddWithValue("@City", city);
-                cmd.Parameters.AddWithValue("@State", state);
-                cmd.Parameters.AddWithValue("@Zip", zip);
+                cmd.Parameters.AddWithValue("@Address", (object?)address ?? DBNull.Value); // Handle null for DB
+                cmd.Parameters.AddWithValue("@City", (object?)city ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@State", (object?)state ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Zip", (object?)zip ?? DBNull.Value);
 
                 await cmd.ExecuteNonQueryAsync(); // USE ASYNC
             }
         }
 
-        public async Task InsertContactAsync(String firstName, String lastName, Int32 prefix, Int32 suffix, String address, String city, String state, String zip) // CHANGED TO ASYNC
+        public async Task InsertContactAsync(String firstName, String lastName, Int32 prefix, Int32 suffix, String? address, String? city, String? state, String? zip) // CHANGED TO NULLABLE STRINGS
         {
             using (SqliteConnection conn = getConnection())
             {
@@ -233,10 +233,10 @@ namespace ContactsApi
                 cmd.Parameters.AddWithValue("@LastName", lastName);
                 cmd.Parameters.AddWithValue("@PrefixId", prefix);
                 cmd.Parameters.AddWithValue("@SuffixId", suffix);
-                cmd.Parameters.AddWithValue("@Address", address); // SQLite handles null directly
-                cmd.Parameters.AddWithValue("@City", city);
-                cmd.Parameters.AddWithValue("@State", state);
-                cmd.Parameters.AddWithValue("@Zip", zip);
+                cmd.Parameters.AddWithValue("@Address", (object?)address ?? DBNull.Value); // Handle null for DB
+                cmd.Parameters.AddWithValue("@City", (object?)city ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@State", (object?)state ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Zip", (object?)zip ?? DBNull.Value);
 
                 await cmd.ExecuteNonQueryAsync(); // USE ASYNC
             }

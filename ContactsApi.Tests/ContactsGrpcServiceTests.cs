@@ -121,7 +121,8 @@ namespace ContactsApi.Tests
 
         public static TestServerCallContext Create() => new TestServerCallContext();
 
-        protected override ContextPropagationToken CreateContextPropagationTokenCore() => throw new NotImplementedException();
+        // Corrected implementation for abstract members
+        protected override ContextPropagationToken CreateContextPropagationTokenCore(ContextPropagationOptions? options) => throw new NotImplementedException();
         protected override string MethodCore => "Test";
         protected override string HostCore => "localhost";
         protected override string PeerCore => "localhost";
@@ -132,13 +133,18 @@ namespace ContactsApi.Tests
         protected override WriteOptions? WriteOptionsCore { get; set; }
         protected override AuthContext AuthContextCore => new AuthContext(null, new List<AuthProperty>());
 
+        // Corrected StatusCore and ResponseTrailersCore implementations
+        protected override Status StatusCore { get; set; } // Must have a public setter
+        protected override Metadata ResponseTrailersCore { get; } = new Metadata(); // Must have a public getter
+
         protected override Task WriteResponseHeadersAsyncCore(Metadata responseHeaders)
         {
             ResponseHeadersCore = responseHeaders;
             return Task.CompletedTask;
         }
 
-        protected override Task<byte[]> ReadMessageCore(Deserializer<byte[]> deserializer) => throw new NotImplementedException();
-        protected override Task WriteMessageCore(byte[] message, Serializer<byte[]> serializer, WriteOptions writeOptions) => throw new NotImplementedException();
+        // Corrected ReadMessageCore and WriteMessageCore to avoid internal types
+        protected override Task<byte[]> ReadMessageCore() => throw new NotImplementedException();
+        protected override Task WriteMessageCore(byte[] message, WriteOptions writeOptions) => throw new NotImplementedException();
     }
 }

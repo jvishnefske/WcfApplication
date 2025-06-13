@@ -44,8 +44,8 @@ namespace ContactsApi.Controllers
 
             // Use null-coalescing operator for nullable strings
             await _utilities.UpdateContactAsync(uid, 
-                                                person.FirstName ?? string.Empty, 
-                                                person.LastName ?? string.Empty, 
+                                                person.FirstName, // REMOVED ?? string.Empty
+                                                person.LastName,  // REMOVED ?? string.Empty
                                                 person.PrefixId, // Corrected from person.Prefix
                                                 person.SuffixId, // Corrected from person.Suffix
                                                 person.Address, 
@@ -64,8 +64,8 @@ namespace ContactsApi.Controllers
             }
 
             // Use null-coalescing operator for nullable strings
-            await _utilities.InsertContactAsync(person.FirstName ?? string.Empty, 
-                                                person.LastName ?? string.Empty, 
+            await _utilities.InsertContactAsync(person.FirstName, // REMOVED ?? string.Empty
+                                                person.LastName,  // REMOVED ?? string.Empty
                                                 person.PrefixId, // Corrected from person.Prefix
                                                 person.SuffixId, // Corrected from person.Suffix
                                                 person.Address, 

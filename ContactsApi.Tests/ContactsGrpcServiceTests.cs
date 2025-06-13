@@ -146,7 +146,6 @@ namespace ContactsApi.Tests
 
         // Corrected: ResponseHeadersCore is getter-only in the abstract base.
         // We will store the headers in the private _responseHeaders field when WriteResponseHeadersAsyncCore is called.
-        protected override Metadata ResponseHeadersCore { get; } = new Metadata(); 
 
         // These properties must have both get and set, and match the abstract signature
         protected override Status StatusCore { get => _status; set => _status = value; }

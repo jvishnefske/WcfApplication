@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "ContactsApi.Protos";
+
+package lookups;
+
+// Define your lookup-related messages and services here
+// For example:
+// message LookupItem {
+//   string id = 1;
+//   string name = 2;
+// }
+
+// service LookupService {
+//   rpc GetLookupItems (GetLookupItemsRequest) returns (stream LookupItem);
+// }
+
+// message GetLookupItemsRequest {
+//   string type = 1;
+// }

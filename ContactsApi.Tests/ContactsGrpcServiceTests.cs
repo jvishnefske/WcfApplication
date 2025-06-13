@@ -118,7 +118,7 @@ namespace ContactsApi.Tests
     // Helper class for creating a dummy ServerCallContext for gRPC service tests
     public class TestServerCallContext : ServerCallContext
     {
-        private Metadata _responseHeaders = new Metadata(); // Private field to store response headers
+        private Metadata _responseHeaders = new Metadata();
         private Status _status;
         private WriteOptions? _writeOptions;
 
@@ -126,40 +126,39 @@ namespace ContactsApi.Tests
 
         public static TestServerCallContext Create() => new TestServerCallContext();
 
-        // Implement abstract properties (public overrides)
-        public override AuthContext AuthContext => new AuthContext(null, new List<AuthProperty>());
-        public override CancellationToken CancellationToken => CancellationToken.None;
-        public override DateTime Deadline => DateTime.MaxValue;
-        public override string Host => "localhost";
-        public override string Method => "Test";
-        public override string Peer => "localhost";
-        public override Metadata RequestHeaders => new Metadata();
-        public override Metadata ResponseHeaders => _responseHeaders; // Return the private field
-        public override Metadata ResponseTrailers => new Metadata();
-        public override Status Status { get => _status; set => _status = value; }
-        public override WriteOptions? WriteOptions { get => _writeOptions; set => _writeOptions = value; }
+        // Implement protected abstract properties
+        protected override AuthContext AuthContextCore => new AuthContext(null, new List<AuthProperty>());
+        protected override CancellationToken CancellationTokenCore => CancellationToken.None;
+        protected override DateTime DeadlineCore => DateTime.MaxValue;
+        protected override string HostCore => "localhost";
+        protected override string MethodCore => "Test";
+        protected override string PeerCore => "localhost";
+        protected override Metadata RequestHeadersCore => new Metadata();
+        protected override Metadata ResponseHeadersCore { get => _responseHeaders; set => _responseHeaders = value; }
+        protected override Metadata ResponseTrailersCore => new Metadata();
+        protected override Status StatusCore { get => _status; set => _status = value; }
+        protected override WriteOptions? WriteOptionsCore { get => _writeOptions; set => _writeOptions = value; }
 
-        // Implement abstract methods (public overrides)
-        public override ContextPropagationToken CreatePropagationToken(ContextPropagationOptions? options = null)
+        // Implement protected abstract methods
+        protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
         {
             throw new NotImplementedException();
         }
 
-        public override Task WriteResponseHeadersAsync(Metadata responseHeaders)
+        protected override Task WriteResponseHeadersAsyncCore(Metadata responseHeaders)
         {
-            _responseHeaders = responseHeaders; // Set the private field
+            _responseHeaders = responseHeaders;
             return Task.CompletedTask;
         }
 
-        // These methods are for message serialization/deserialization.
-        // For most unit tests, they are not directly used by the service logic itself,
-        // so throwing NotImplementedException is acceptable.
-        public override Task<byte[]> ReadMessageAsync(Grpc.Core.Deserializer<byte[]> deserializer)
+        // These methods do not take Serializer/Deserializer parameters in the abstract base.
+        // They are for reading/writing raw bytes.
+        protected override Task<byte[]> ReadMessageCore()
         {
             throw new NotImplementedException();
         }
 
-        public override Task WriteMessageAsync(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
+        protected override Task WriteMessageCore(byte[] message, WriteOptions writeOptions)
         {
             throw new NotImplementedException();
         }

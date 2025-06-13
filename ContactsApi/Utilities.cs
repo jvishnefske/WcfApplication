@@ -1,33 +1,30 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.Sqlite; // CHANGE from Microsoft.Data.SqlClient
+using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using ContactsApi.Models;
-using System.IO; // Needed for Path.Combine
+using System.IO;
+using Microsoft.Extensions.Configuration; // ADD THIS USING
 
 namespace ContactsApi
 {
     public class Utilities
     {
-        // SQLite database file path
-        // It's good practice to put this in appsettings.json for production,
-        // but for simplicity, we'll keep it here for now.
-        private static readonly string DbFilePath = Path.Combine(AppContext.BaseDirectory, "contacts.db");
-        private static readonly string ConnectionString = $"Data Source={DbFilePath}";
+        private readonly string _connectionString;
 
-        static Utilities()
+        public Utilities(IConfiguration configuration)
         {
-            System.Diagnostics.Trace.WriteLine("Starting tracing for Utilities.");
-            InitializeDatabase(); // Ensure database and tables exist on startup
+            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? 
+                                throw new InvalidOperationException("DefaultConnection connection string not found.");
+            System.Diagnostics.Trace.WriteLine("Utilities initialized with connection string from config.");
         }
 
-        private static SqliteConnection getConnection()
+        private SqliteConnection getConnection()
         {
-            return new SqliteConnection(ConnectionString);
+            return new SqliteConnection(_connectionString); // Use the injected connection string
         }
 
-        // New method to initialize the SQLite database and tables
-        public static void InitializeDatabase()
+        public void InitializeDatabase()
         {
             using (var connection = getConnection())
             {
@@ -93,11 +90,11 @@ namespace ContactsApi
                     command.ExecuteNonQuery();
                 }
             }
-            System.Diagnostics.Trace.WriteLine($"SQLite database initialized at: {DbFilePath}");
+            System.Diagnostics.Trace.WriteLine($"SQLite database initialized at: {_connectionString}");
         }
 
 
-        public static ContactDto? GetContact(int uid) // Changed return type to nullable
+        public ContactDto? GetContact(int uid) // Changed return type to nullable
         {
             ContactDto? contact = null;
             using (SqliteConnection conn = getConnection())
@@ -127,7 +124,7 @@ namespace ContactsApi
             return contact;
         }
 
-        public static List<ContactDto> GetAllContacts()
+        public List<ContactDto> GetAllContacts()
         {
             System.Diagnostics.Trace.WriteLine("Refreshing contacts.");
 
@@ -158,7 +155,7 @@ namespace ContactsApi
             return contacts;
         }
 
-        public static List<LookupDto> GetPrefixes()
+        public List<LookupDto> GetPrefixes()
         {
             List<LookupDto> prefixes = new List<LookupDto>();
             using (SqliteConnection conn = getConnection())
@@ -180,7 +177,7 @@ namespace ContactsApi
             }
         }
 
-        public static List<LookupDto> GetSuffixes()
+        public List<LookupDto> GetSuffixes()
         {
             List<LookupDto> suffixes = new List<LookupDto>();
             using (SqliteConnection conn = getConnection())
@@ -202,7 +199,7 @@ namespace ContactsApi
             }
         }
 
-        public static void UpdateContact(Int32 uid, String firstName, String lastName, Int32 prefix, Int32 suffix, String address, String city, String state, String zip)
+        public void UpdateContact(Int32 uid, String firstName, String lastName, Int32 prefix, Int32 suffix, String address, String city, String state, String zip)
         {
             using (SqliteConnection conn = getConnection())
             {
@@ -223,7 +220,7 @@ namespace ContactsApi
             }
         }
 
-        public static void InsertContact(String firstName, String lastName, Int32 prefix, Int32 suffix, String address, String city, String state, String zip)
+        public void InsertContact(String firstName, String lastName, Int32 prefix, Int32 suffix, String address, String city, String state, String zip)
         {
             using (SqliteConnection conn = getConnection())
             {

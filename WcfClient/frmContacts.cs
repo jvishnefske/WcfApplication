@@ -7,19 +7,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.ServiceModel;
-using System.ServiceModel.Description;
 using System.Diagnostics.Tracing;
 using System.Threading;
 using System.Diagnostics;
-//using System.Diagnostics.
-//using System.Data;
+using System.Net.Http; // Added for HttpClient
+using Newtonsoft.Json; // Added for JSON deserialization
+using WcfClient.Models; // Added to use the new Contact model
+
 namespace WcfClient
 {
     public partial class frmContacts : Form
     {
         
         DataTable contacts;
+        private readonly HttpClient _httpClient; // Declare HttpClient
+
         public frmContacts()
         {
             var traceFile = new System.Diagnostics.TextWriterTraceListener("tracelog.txt");
@@ -29,79 +31,77 @@ namespace WcfClient
             System.Diagnostics.Trace.WriteLine("itializing contacts form.");
 
             System.Diagnostics.Debug.WriteLine("Debug output from contacts form.");
-            //traceFile.Close();
-
-            //Form traceForm = new frmTraceLog();
-            //traceForm.Show();
-            //contacts = new DataTable("","<container><stuff>content</stuff></containier>");
-
-            /*Uri baseAddress = new Uri("http://0.0.0.0:8000/ClientData/");
-            //Uri baseAddress = new Uri("http://localhost:51599/");
-            ServiceHost selfHost = new ServiceHost(typeof(WcfService.Service1), baseAddress);
-            try
-            {
-                selfHost.AddServiceEndpoint(typeof(WcfService.IService1),
-                new WSHttpBinding(), "ContactData");
-                ServiceMetadataBehavior smb = new ServiceMetadataBehavior();
-                smb.HttpGetEnabled = true;
-                selfHost.Description.Behaviors.Add(smb);
-                selfHost.Open();
-                Console.WriteLine("Service Started.");
-            }
-            catch (Exception e) {
-                Console.WriteLine("danger! : "+e.ToString());
-                throw e;
-            }
-            */
+            
             InitializeComponent();
             contacts = new DataTable();
             dataGridView1.DataSource = contacts;
 
+            _httpClient = new HttpClient(); // Initialize HttpClient
+            _httpClient.BaseAddress = new Uri("http://localhost:5000/"); // Set base address for your new Web API
         }
+
         ~frmContacts() {
             Trace.WriteLine("contact destructor.");
+            _httpClient.Dispose(); // Dispose HttpClient when the form is closed
         }
-        void updateContacts(){
+
+        // Changed to async Task to allow await calls
+        async Task updateContacts()
+        {
             lblStatus.Text = "Attempting connection...";
-                    using (ServiceReference1.Service1Client client =
-            new ServiceReference1.Service1Client())
-
+            try
             {
+                Trace.WriteLine("refreshing contacts.");
 
-                try
-                {
-                    Trace.WriteLine("refreshing contacts.");
+                // Make an HTTP GET request to your new Web API endpoint
+                HttpResponseMessage response = await _httpClient.GetAsync("api/contacts");
+                response.EnsureSuccessStatusCode(); // Throws an exception if the HTTP response status is an error code
 
-                    contacts = client.GetAllContacts();
-                    //contacts = client.GetContact(1);
-                    lblStatus.Text = "complete";
-                    dataGridView1.DataSource = contacts;
-                    
-                }
-                catch (Exception e)
-                {
-                    if (((Exception)e) == null) lblStatus.Text = "null exception";
-                    else
-                        lblStatus.Text = e.ToString();
-                       
-                }
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+                
+                // Deserialize the JSON response into a list of Contact objects
+                List<Contact> contactList = JsonConvert.DeserializeObject<List<Contact>>(jsonResponse);
+
+                // Convert the list of contacts to a DataTable for display
+                contacts = Contact.ToDataTable(contactList);
+                
+                lblStatus.Text = "complete";
+                dataGridView1.DataSource = contacts;
+                
             }
-                    
-        
+            catch (HttpRequestException httpEx)
+            {
+                lblStatus.Text = $"HTTP Error: {httpEx.Message}";
+                Trace.TraceError($"HttpRequestException in updateContacts: {httpEx.Message}");
+            }
+            catch (JsonSerializationException jsonEx)
+            {
+                lblStatus.Text = $"JSON Error: {jsonEx.Message}";
+                Trace.TraceError($"JsonSerializationException in updateContacts: {jsonEx.Message}");
+            }
+            catch (Exception e)
+            {
+                lblStatus.Text = $"General Error: {e.Message}";
+                Trace.TraceError($"General Exception in updateContacts: {e.ToString()}");
+            }
         }
+
         private void label1_Click(object sender, EventArgs e)
         {
-
+            // This event handler seems to be incorrectly wired to updateContacts
+            // If it's meant to refresh, it should call updateContacts()
         }
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        // Changed to async void for event handler
+        private async void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            updateContacts();
+            await updateContacts();
         }
 
-        private void btnRefresh_Click(object sender, EventArgs e)
+        // Changed to async void for event handler
+        private async void btnRefresh_Click(object sender, EventArgs e)
         {
-            updateContacts();
+            await updateContacts();
         }
     }
 }

@@ -142,7 +142,7 @@ namespace ContactsApi.Tests
         protected override string MethodCore => "Test";
         protected override string PeerCore => "localhost";
         protected override Metadata RequestHeadersCore => new Metadata();
-        protected override Metadata ResponseTrailersCore => new Metadata();
+        protected override Metadata ResponseTrailersCore => new Metadata(); 
 
         // Corrected: ResponseHeadersCore is getter-only in the abstract base.
         // We will store the headers in the private _responseHeaders field when WriteResponseHeadersAsyncCore is called.

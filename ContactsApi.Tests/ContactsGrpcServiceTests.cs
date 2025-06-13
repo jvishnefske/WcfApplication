@@ -36,7 +36,7 @@ namespace ContactsApi.Tests
             var mockContacts = new List<ContactDto>
             {
                 new ContactDto { Uid = 1, FirstName = "John", LastName = "Doe", PrefixId = 1, SuffixId = 1, Address = "123 Main", City = "Anytown", State = "CA", Zip = "90210" },
-                new ContactDto { Uid = 2, FirstName = "Jane", LastName = "Smith", PrefixId = 2, SuffixId = 2, Address = "456 Oak", City = "Otherville", State = "NY", Zip = "10001" }
+                new ContactDto { Uid = 2, FirstName = "Jane", "LastName = "Smith", PrefixId = 2, SuffixId = 2, Address = "456 Oak", City = "Otherville", State = "NY", Zip = "10001" }
             };
             _utilitiesMock.Setup(u => u.GetAllContactsAsync()).ReturnsAsync(mockContacts);
 
@@ -144,7 +144,7 @@ namespace ContactsApi.Tests
         protected override Metadata RequestHeadersCore => new Metadata();
         protected override Metadata ResponseTrailersCore => new Metadata();
 
-        // ResponseHeadersCore is getter-only in the abstract base.
+        // Corrected: ResponseHeadersCore is getter-only in the abstract base.
         // We will store the headers in the private _responseHeaders field when WriteResponseHeadersAsyncCore is called.
         protected override Metadata ResponseHeadersCore { get; } = new Metadata(); 
 
@@ -155,6 +155,8 @@ namespace ContactsApi.Tests
         // Implement protected abstract methods
         protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
         {
+            // This method is abstract in Grpc.Core 2.x.
+            // For testing, it's usually safe to throw NotImplementedException if not directly used.
             throw new NotImplementedException();
         }
 

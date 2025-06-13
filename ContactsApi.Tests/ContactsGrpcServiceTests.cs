@@ -122,7 +122,7 @@ namespace ContactsApi.Tests
         }
     }
 
-    // RE-ADD THE CUSTOM TestServerCallContext CLASS DEFINITION HERE
+    // REVISED CUSTOM TestServerCallContext CLASS DEFINITION
     public class TestServerCallContext : ServerCallContext
     {
         // Private fields to back the properties
@@ -144,31 +144,42 @@ namespace ContactsApi.Tests
         protected override Metadata RequestHeadersCore => new Metadata();
         protected override Metadata ResponseTrailersCore => new Metadata(); // This is a getter-only property
 
+        // Corrected: ResponseHeadersCore is getter-only in abstract base
+        // We will store the headers in the private _responseHeaders field when WriteResponseHeadersAsyncCore is called.
+        protected override Metadata ResponseHeadersCore { get; } = new Metadata(); 
+
         // These properties must have both get and set, and match the abstract signature
-        protected override Metadata ResponseHeadersCore { get => _responseHeaders; set => _responseHeaders = value; }
         protected override Status StatusCore { get => _status; set => _status = value; }
         protected override WriteOptions? WriteOptionsCore { get => _writeOptions; set => _writeOptions = value; }
 
         // Implement protected abstract methods
         protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
         {
+            // This method is abstract in Grpc.Core 2.x.
+            // For testing, it's usually safe to throw NotImplementedException if not directly used.
             throw new NotImplementedException();
         }
 
         protected override Task WriteResponseHeadersAsyncCore(Metadata responseHeaders)
         {
-            ResponseHeadersCore = responseHeaders; // Use the overridden property's setter
+            // This method is called by the gRPC infrastructure to set response headers.
+            // We store them in our private field.
+            _responseHeaders = responseHeaders; 
             return Task.CompletedTask;
         }
 
-        // These methods must take Deserializer/Serializer parameters as per Grpc.Core 2.x abstract definition
-        protected override Task<byte[]> ReadMessageCore(Grpc.Core.Deserializer<byte[]> deserializer)
+        // Corrected: ReadMessageCore and WriteMessageCore do NOT take Serializer/Deserializer parameters in Grpc.Core 2.x abstract definition
+        protected override Task<byte[]> ReadMessageCore()
         {
+            // This method is abstract in Grpc.Core 2.x.
+            // For testing, it's usually safe to throw NotImplementedException if not directly used.
             throw new NotImplementedException();
         }
 
-        protected override Task WriteMessageCore(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
+        protected override Task WriteMessageCore(byte[] message, WriteOptions writeOptions)
         {
+            // This method is abstract in Grpc.Core 2.x.
+            // For testing, it's usually safe to throw NotImplementedException if not directly used.
             throw new NotImplementedException();
         }
     }

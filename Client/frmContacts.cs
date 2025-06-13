@@ -7,22 +7,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Diagnostics.Tracing;
-using System.Threading;
 using System.Diagnostics;
-using System.Net.Http; // Added for HttpClient
-using System.Net.Http.Json; // Add this for GetFromJsonAsync
-using Newtonsoft.Json; // Added for JSON deserialization
-using WcfClient.Models; // Now refers to ContactDto, PersonRequestDto, LookupDto
+using System.Net.Http;
+using System.Net.Http.Json;
+using Client.Models; // Now refers to ContactDto, PersonRequestDto, LookupDto
 
-namespace WcfClient
+namespace Client
 {
     public partial class frmContacts : Form
     {
         
         DataTable contacts;
-        // Remove the private HttpClient field as we will use ApiClient.Client
-        // private readonly HttpClient _httpClient; 
 
         public frmContacts()
         {
@@ -37,17 +32,7 @@ namespace WcfClient
             InitializeComponent();
             contacts = new DataTable();
             dataGridView1.DataSource = contacts;
-
-            // Remove HttpClient initialization here
-            // _httpClient = new HttpClient(); 
-            // _httpClient.BaseAddress = new Uri("https://localhost:7001/"); 
         }
-
-        // Remove the destructor as HttpClient is no longer managed by the form
-        // ~frmContacts() {
-        //     Trace.WriteLine("contact destructor.");
-        //     _httpClient.Dispose(); 
-        // }
 
         // Changed to async Task to allow await calls
         async Task updateContacts()

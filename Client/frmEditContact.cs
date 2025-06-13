@@ -10,16 +10,11 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Http.Json; // Add this for GetFromJsonAsync, PostAsJsonAsync, PutAsJsonAsync
-using Newtonsoft.Json; // For JSON deserialization
-using WcfClient.Models; // For DTOs
-namespace WcfClient
+using Client.Models; // For DTOs
+namespace Client
 {
     public partial class frmEditContact : Form
     {
-        // Remove the private HttpClient field as we will use ApiClient.Client
-        // private readonly HttpClient _httpClient = new HttpClient();
-        // Remove BaseApiUrl as it's now in ApiClient
-        // private const string BaseApiUrl = "https://localhost:7001"; 
         private int _contactUid; // To store the UID of the contact being edited
         public bool IsNewContact { get; private set; } // To determine if it's a new contact or existing
 
@@ -36,8 +31,6 @@ namespace WcfClient
         {
             InitializeComponent();
             Trace.WriteLine("Editing contact.");
-            // Remove _httpClient.BaseAddress assignment
-            // _httpClient.BaseAddress = new Uri(BaseApiUrl);
             _contactUid = uid;
             IsNewContact = (uid == 0); // If UID is 0, it's a new contact
 
@@ -57,10 +50,6 @@ namespace WcfClient
 
             _ = LoadLookups(); // Load prefixes and suffixes
         }
-        // Remove the destructor as HttpClient is no longer managed by the form
-        // ~frmEditContact() {
-        //     Trace.WriteLine("edit contact destructor.");
-        // }
 
         private async Task LoadContactDetails(int uid)
         {

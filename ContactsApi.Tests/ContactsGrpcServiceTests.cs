@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Configuration; // Added for Mock<IConfiguration>
+using System.Threading; // Added for CancellationToken
 
 namespace ContactsApi.Tests
 {
@@ -117,41 +118,48 @@ namespace ContactsApi.Tests
     // Helper class for creating a dummy ServerCallContext for gRPC service tests
     public class TestServerCallContext : ServerCallContext
     {
+        private Metadata _responseHeaders = new Metadata(); // Private field to store response headers
+        private Status _status;
+        private WriteOptions? _writeOptions;
+
         private TestServerCallContext() { }
 
         public static TestServerCallContext Create() => new TestServerCallContext();
 
-        // Abstract properties
-        protected override AuthContext AuthContextCore => new AuthContext(null, new List<AuthProperty>());
-        protected override CancellationToken CancellationTokenCore => CancellationToken.None;
-        protected override DateTime DeadlineCore => DateTime.MaxValue;
-        protected override string HostCore => "localhost";
-        protected override string MethodCore => "Test";
-        protected override string PeerCore => "localhost";
-        protected override Metadata RequestHeadersCore => new Metadata();
-        protected override Metadata ResponseHeadersCore { get; set; } = new Metadata();
-        protected override Metadata ResponseTrailersCore { get; } = new Metadata();
-        protected override Status StatusCore { get; set; }
-        protected override WriteOptions? WriteOptionsCore { get; set; }
+        // Implement abstract properties (public overrides)
+        public override AuthContext AuthContext => new AuthContext(null, new List<AuthProperty>());
+        public override CancellationToken CancellationToken => CancellationToken.None;
+        public override DateTime Deadline => DateTime.MaxValue;
+        public override string Host => "localhost";
+        public override string Method => "Test";
+        public override string Peer => "localhost";
+        public override Metadata RequestHeaders => new Metadata();
+        public override Metadata ResponseHeaders => _responseHeaders; // Return the private field
+        public override Metadata ResponseTrailers => new Metadata();
+        public override Status Status { get => _status; set => _status = value; }
+        public override WriteOptions? WriteOptions { get => _writeOptions; set => _writeOptions = value; }
 
-        // Abstract methods
-        protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
+        // Implement abstract methods (public overrides)
+        public override ContextPropagationToken CreatePropagationToken(ContextPropagationOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task WriteResponseHeadersAsyncCore(Metadata responseHeaders)
+        public override Task WriteResponseHeadersAsync(Metadata responseHeaders)
         {
-            ResponseHeadersCore = responseHeaders;
+            _responseHeaders = responseHeaders; // Set the private field
             return Task.CompletedTask;
         }
 
-        protected override Task<byte[]> ReadMessageCore()
+        // These methods are for message serialization/deserialization.
+        // For most unit tests, they are not directly used by the service logic itself,
+        // so throwing NotImplementedException is acceptable.
+        public override Task<byte[]> ReadMessageAsync(Grpc.Core.Deserializer<byte[]> deserializer)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task WriteMessageCore(byte[] message, WriteOptions writeOptions)
+        public override Task WriteMessageAsync(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
         {
             throw new NotImplementedException();
         }

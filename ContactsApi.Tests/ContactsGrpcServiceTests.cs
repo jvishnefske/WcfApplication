@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.Extensions.Configuration; // Added for Mock<IConfiguration>
 using System.Threading; // Added for CancellationToken
 using System; // Added for NotImplementedException
+using Grpc.Net.Client.Testing; // ADD THIS USING DIRECTIVE
 
 namespace ContactsApi.Tests
 {
@@ -24,7 +25,8 @@ namespace ContactsApi.Tests
         public ContactsGrpcServiceTests()
         {
             _loggerMock = new Mock<ILogger<ContactsGrpcService>>();
-            _utilitiesMock = new Mock<Utilities>(MockBehavior.Strict, new Mock<IConfiguration>().Object); // Pass a mock IConfiguration
+            // Ensure MockBehavior.Strict is used if you want to verify all setups
+            _utilitiesMock = new Mock<Utilities>(MockBehavior.Strict, new Mock<IConfiguration>().Object); 
             _service = new ContactsGrpcService(_loggerMock.Object, _utilitiesMock.Object);
         }
 
@@ -40,6 +42,7 @@ namespace ContactsApi.Tests
             _utilitiesMock.Setup(u => u.GetAllContactsAsync()).ReturnsAsync(mockContacts);
 
             // Act
+            // Use the TestServerCallContext from Grpc.Net.Client.Testing
             var response = await _service.GetAllContacts(new Empty(), TestServerCallContext.Create());
 
             // Assert
@@ -59,6 +62,7 @@ namespace ContactsApi.Tests
 
             // Act
             var request = new GetContactRequest { Uid = 1 };
+            // Use the TestServerCallContext from Grpc.Net.Client.Testing
             var contact = await _service.GetContact(request, TestServerCallContext.Create());
 
             // Assert
@@ -76,6 +80,7 @@ namespace ContactsApi.Tests
 
             // Act & Assert
             var request = new GetContactRequest { Uid = 999 };
+            // Use the TestServerCallContext from Grpc.Net.Client.Testing
             var exception = await Assert.ThrowsAsync<RpcException>(() => _service.GetContact(request, TestServerCallContext.Create()));
             Assert.Equal(StatusCode.NotFound, exception.Status.StatusCode);
             _utilitiesMock.Verify(u => u.GetContactAsync(999), Times.Once);
@@ -90,6 +95,7 @@ namespace ContactsApi.Tests
                           .Returns(Task.CompletedTask);
 
             // Act
+            // Use the TestServerCallContext from Grpc.Net.Client.Testing
             var response = await _service.InsertContact(personRequest, TestServerCallContext.Create());
 
             // Assert
@@ -107,60 +113,13 @@ namespace ContactsApi.Tests
                           .Returns(Task.CompletedTask);
 
             // Act
+            // Use the TestServerCallContext from Grpc.Net.Client.Testing
             var response = await _service.UpdateContact(contact, TestServerCallContext.Create());
 
             // Assert
             Assert.NotNull(response);
             Assert.True(response.Success);
             _utilitiesMock.Verify(u => u.UpdateContactAsync(contact.Uid, contact.FirstName, contact.LastName, contact.PrefixId, contact.SuffixId, contact.Address, contact.City, contact.State, contact.Zip), Times.Once);
-        }
-    }
-
-    // Helper class for creating a dummy ServerCallContext for gRPC service tests
-    public class TestServerCallContext : ServerCallContext
-    {
-        private Metadata _responseHeaders = new Metadata();
-        private Status _status;
-        private WriteOptions? _writeOptions;
-
-        private TestServerCallContext() { }
-
-        public static TestServerCallContext Create() => new TestServerCallContext();
-
-        // Implement protected abstract properties
-        protected override AuthContext AuthContextCore => new AuthContext(null, new List<AuthProperty>());
-        protected override CancellationToken CancellationTokenCore => CancellationToken.None;
-        protected override DateTime DeadlineCore => DateTime.MaxValue;
-        protected override string HostCore => "localhost";
-        protected override string MethodCore => "Test";
-        protected override string PeerCore => "localhost";
-        protected override Metadata RequestHeadersCore => new Metadata();
-        protected override Metadata ResponseTrailersCore => new Metadata();
-        protected override Metadata ResponseHeadersCore { get => _responseHeaders; set => _responseHeaders = value; }
-        protected override Status StatusCore { get => _status; set => _status = value; }
-        protected override WriteOptions? WriteOptionsCore { get => _writeOptions; set => _writeOptions = value; }
-
-        // Implement protected abstract methods
-        protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Task WriteResponseHeadersAsyncCore(Metadata responseHeaders)
-        {
-            _responseHeaders = responseHeaders;
-            return Task.CompletedTask;
-        }
-
-        // These methods must take Deserializer/Serializer parameters as per Grpc.Core 2.x abstract definition
-        protected override Task<byte[]> ReadMessageCore(Grpc.Core.Deserializer<byte[]> deserializer)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Task WriteMessageCore(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -9,7 +9,8 @@ import "google/protobuf/empty.proto";
 // Messages for Lookups
 message Lookup {
   int32 id = 1;
-  string value = 2;
+  // RENAME 'value' to 'description' (if not already done)
+  string description = 2; 
 }
 
 message GetLookupsResponse {

@@ -13,6 +13,11 @@ message Contact {
   string last_name = 3;
   int32 prefix_id = 4;
   int32 suffix_id = 5;
+  // ADD THESE FIELDS (if not already present)
+  string address = 6;
+  string city = 7;
+  string state = 8;
+  string zip = 9;
 }
 
 message PersonRequest {
@@ -20,6 +25,11 @@ message PersonRequest {
   string last_name = 2;
   int32 prefix_id = 3;
   int32 suffix_id = 4;
+  // ADD THESE FIELDS (if not already present)
+  string address = 5;
+  string city = 6;
+  string state = 7;
+  string zip = 8;
 }
 
 message OperationResponse {

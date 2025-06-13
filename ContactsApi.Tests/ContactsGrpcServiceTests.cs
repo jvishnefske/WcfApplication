@@ -168,12 +168,12 @@ namespace ContactsApi.Tests
         }
 
         // CORRECTED: ReadMessageCore and WriteMessageCore *DO* take Serializer/Deserializer parameters in Grpc.Core 2.x abstract definition
-        protected override Task<byte[]> ReadMessageCore(Grpc.Core.Deserializer<byte[]> deserializer)
+        protected override Task<byte[]> ReadMessageCore(ContactsApi.Grpc.Core.Deserializer<byte[]> deserializer)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task WriteMessageCore(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
+        protected override Task WriteMessageCore(byte[] message, ContactsApi.Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
         {
             throw new NotImplementedException();
         }

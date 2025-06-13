@@ -12,7 +12,7 @@ using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
 using System;
-// REMOVED: using Grpc.Net.Client.Testing; 
+//using Grpc.Net.Client.Testing; 
 
 namespace ContactsApi.Tests
 {
@@ -169,14 +169,14 @@ namespace ContactsApi.Tests
 
         // CORRECTED: ReadMessageCore and WriteMessageCore *DO* take Serializer/Deserializer parameters in Grpc.Core 2.x abstract definition
         // Removed incorrect namespace prefix 'ContactsApi.Grpc.'
-        protected override Task<byte[]> ReadMessageCore(Grpc.Core.Deserializer<byte[]> deserializer)
-        {
-            throw new NotImplementedException();
-        }
+        //protected override Task<byte[]> ReadMessageCore(Grpc.Core.Deserializer<byte[]> deserializer)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        protected override Task WriteMessageCore(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
-        {
-            throw new NotImplementedException();
-        }
+        //protected override Task WriteMessageCore(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

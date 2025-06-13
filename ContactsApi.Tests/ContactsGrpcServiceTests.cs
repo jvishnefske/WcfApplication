@@ -134,7 +134,7 @@ namespace ContactsApi.Tests
 
         public static TestServerCallContext Create() => new TestServerCallContext();
 
-        // Implement protected abstract properties
+        // Implement protected abstract properties (all are getter-only except StatusCore and WriteOptionsCore)
         protected override AuthContext AuthContextCore => new AuthContext(null, new List<AuthProperty>());
         protected override CancellationToken CancellationTokenCore => CancellationToken.None;
         protected override DateTime DeadlineCore => DateTime.MaxValue;
@@ -142,9 +142,9 @@ namespace ContactsApi.Tests
         protected override string MethodCore => "Test";
         protected override string PeerCore => "localhost";
         protected override Metadata RequestHeadersCore => new Metadata();
-        protected override Metadata ResponseTrailersCore => new Metadata(); // This is a getter-only property
+        protected override Metadata ResponseTrailersCore => new Metadata();
 
-        // Corrected: ResponseHeadersCore is getter-only in abstract base
+        // ResponseHeadersCore is getter-only in the abstract base.
         // We will store the headers in the private _responseHeaders field when WriteResponseHeadersAsyncCore is called.
         protected override Metadata ResponseHeadersCore { get; } = new Metadata(); 
 
@@ -155,8 +155,6 @@ namespace ContactsApi.Tests
         // Implement protected abstract methods
         protected override ContextPropagationToken CreatePropagationTokenCore(ContextPropagationOptions? options)
         {
-            // This method is abstract in Grpc.Core 2.x.
-            // For testing, it's usually safe to throw NotImplementedException if not directly used.
             throw new NotImplementedException();
         }
 
@@ -168,18 +166,14 @@ namespace ContactsApi.Tests
             return Task.CompletedTask;
         }
 
-        // Corrected: ReadMessageCore and WriteMessageCore do NOT take Serializer/Deserializer parameters in Grpc.Core 2.x abstract definition
-        protected override Task<byte[]> ReadMessageCore()
+        // CORRECTED: ReadMessageCore and WriteMessageCore *DO* take Serializer/Deserializer parameters in Grpc.Core 2.x abstract definition
+        protected override Task<byte[]> ReadMessageCore(Grpc.Core.Deserializer<byte[]> deserializer)
         {
-            // This method is abstract in Grpc.Core 2.x.
-            // For testing, it's usually safe to throw NotImplementedException if not directly used.
             throw new NotImplementedException();
         }
 
-        protected override Task WriteMessageCore(byte[] message, WriteOptions writeOptions)
+        protected override Task WriteMessageCore(byte[] message, Grpc.Core.Serializer<byte[]> serializer, WriteOptions writeOptions)
         {
-            // This method is abstract in Grpc.Core 2.x.
-            // For testing, it's usually safe to throw NotImplementedException if not directly used.
             throw new NotImplementedException();
         }
     }

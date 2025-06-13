@@ -17,35 +17,35 @@ namespace ContactsApi.Services
             _utilities = utilities; // ASSIGN Utilities
         }
 
-        public override Task<GetAllContactsResponse> GetAllContacts(Empty request, ServerCallContext context)
+        public override async Task<GetAllContactsResponse> GetAllContacts(Empty request, ServerCallContext context) // ADD ASYNC
         {
             _logger.LogInformation("Getting all contacts via gRPC.");
-            var contacts = _utilities.GetAllContacts(); // CALL non-static method
+            var contacts = await _utilities.GetAllContactsAsync(); // CALL non-static method ASYNC
             var response = new GetAllContactsResponse();
             foreach (var contactDto in contacts)
             {
                 response.Contacts.Add(MapContactDtoToGrpcContact(contactDto));
             }
-            return Task.FromResult(response);
+            return response; // No Task.FromResult needed for async methods
         }
 
-        public override Task<Contact> GetContact(GetContactRequest request, ServerCallContext context)
+        public override async Task<Contact> GetContact(GetContactRequest request, ServerCallContext context) // ADD ASYNC
         {
             _logger.LogInformation($"Getting contact with UID {request.Uid} via gRPC.");
-            var contactDto = _utilities.GetContact(request.Uid); // CALL non-static method
+            var contactDto = await _utilities.GetContactAsync(request.Uid); // CALL non-static method ASYNC
             if (contactDto == null)
             {
                 throw new RpcException(new Status(StatusCode.NotFound, $"Contact with UID {request.Uid} not found."));
             }
-            return Task.FromResult(MapContactDtoToGrpcContact(contactDto));
+            return MapContactDtoToGrpcContact(contactDto); // No Task.FromResult needed for async methods
         }
 
-        public override Task<OperationResponse> InsertContact(PersonRequest request, ServerCallContext context)
+        public override async Task<OperationResponse> InsertContact(PersonRequest request, ServerCallContext context) // ADD ASYNC
         {
             _logger.LogInformation("Inserting new contact via gRPC.");
             try
             {
-                _utilities.InsertContact( // CALL non-static method
+                await _utilities.InsertContactAsync( // CALL non-static method ASYNC
                     request.FirstName,
                     request.LastName,
                     request.PrefixId,
@@ -55,7 +55,7 @@ namespace ContactsApi.Services
                     request.State,
                     request.Zip
                 );
-                return Task.FromResult(new OperationResponse { Success = true, Message = "Contact inserted successfully." });
+                return new OperationResponse { Success = true, Message = "Contact inserted successfully." }; // No Task.FromResult needed for async methods
             }
             catch (Exception ex)
             {
@@ -64,12 +64,12 @@ namespace ContactsApi.Services
             }
         }
 
-        public override Task<OperationResponse> UpdateContact(Contact request, ServerCallContext context)
+        public override async Task<OperationResponse> UpdateContact(Contact request, ServerCallContext context) // ADD ASYNC
         {
             _logger.LogInformation($"Updating contact with UID {request.Uid} via gRPC.");
             try
             {
-                _utilities.UpdateContact( // CALL non-static method
+                await _utilities.UpdateContactAsync( // CALL non-static method ASYNC
                     request.Uid,
                     request.FirstName,
                     request.LastName,
@@ -80,7 +80,7 @@ namespace ContactsApi.Services
                     request.State,
                     request.Zip
                 );
-                return Task.FromResult(new OperationResponse { Success = true, Message = "Contact updated successfully." });
+                return new OperationResponse { Success = true, Message = "Contact updated successfully." }; // No Task.FromResult needed for async methods
             }
             catch (Exception ex)
             {

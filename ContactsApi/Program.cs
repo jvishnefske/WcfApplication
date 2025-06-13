@@ -23,7 +23,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var utilities = scope.ServiceProvider.GetRequiredService<Utilities>();
-    utilities.InitializeDatabase();
+    await utilities.InitializeDatabaseAsync(); // CALL ASYNC VERSION
 }
 
 // Configure the HTTP request pipeline.

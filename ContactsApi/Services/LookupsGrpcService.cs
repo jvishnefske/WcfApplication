@@ -17,28 +17,28 @@ namespace ContactsApi.Services
             _utilities = utilities; // ASSIGN Utilities
         }
 
-        public override Task<GetLookupsResponse> GetPrefixes(Empty request, ServerCallContext context)
+        public override async Task<GetLookupsResponse> GetPrefixes(Empty request, ServerCallContext context) // ADD ASYNC
         {
             _logger.LogInformation("Getting prefixes via gRPC.");
-            var prefixes = _utilities.GetPrefixes(); // CALL non-static method
+            var prefixes = await _utilities.GetPrefixesAsync(); // CALL non-static method ASYNC
             var response = new GetLookupsResponse();
             foreach (var lookupDto in prefixes)
             {
                 response.Lookups.Add(MapLookupDtoToGrpcLookup(lookupDto));
             }
-            return Task.FromResult(response);
+            return response; // No Task.FromResult needed for async methods
         }
 
-        public override Task<GetLookupsResponse> GetSuffixes(Empty request, ServerCallContext context)
+        public override async Task<GetLookupsResponse> GetSuffixes(Empty request, ServerCallContext context) // ADD ASYNC
         {
             _logger.LogInformation("Getting suffixes via gRPC.");
-            var suffixes = _utilities.GetSuffixes(); // CALL non-static method
+            var suffixes = await _utilities.GetSuffixesAsync(); // CALL non-static method ASYNC
             var response = new GetLookupsResponse();
             foreach (var lookupDto in suffixes)
             {
                 response.Lookups.Add(MapLookupDtoToGrpcLookup(lookupDto));
             }
-            return Task.FromResult(response);
+            return response; // No Task.FromResult needed for async methods
         }
 
         private ContactsApi.Grpc.Lookup MapLookupDtoToGrpcLookup(LookupDto dto)

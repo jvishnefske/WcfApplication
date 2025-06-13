@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,6 +11,7 @@ using System.Diagnostics.Tracing;
 using System.Threading;
 using System.Diagnostics;
 using System.Net.Http; // Added for HttpClient
+using System.Net.Http.Json; // Add this for GetFromJsonAsync
 using Newtonsoft.Json; // Added for JSON deserialization
 using WcfClient.Models; // Now refers to ContactDto, PersonRequestDto, LookupDto
 
@@ -20,7 +21,8 @@ namespace WcfClient
     {
         
         DataTable contacts;
-        private readonly HttpClient _httpClient; // Declare HttpClient
+        // Remove the private HttpClient field as we will use ApiClient.Client
+        // private readonly HttpClient _httpClient; 
 
         public frmContacts()
         {
@@ -28,7 +30,7 @@ namespace WcfClient
             
             Trace.Listeners.Add(traceFile);
 
-            System.Diagnostics.Trace.WriteLine("itializing contacts form.");
+            Trace.WriteLine("Initializing contacts form.");
 
             System.Diagnostics.Debug.WriteLine("Debug output from contacts form.");
             
@@ -36,14 +38,16 @@ namespace WcfClient
             contacts = new DataTable();
             dataGridView1.DataSource = contacts;
 
-            _httpClient = new HttpClient(); // Initialize HttpClient
-            _httpClient.BaseAddress = new Uri("https://localhost:7001/"); // Set base address for your new Web API (ASP.NET Core default HTTPS port)
+            // Remove HttpClient initialization here
+            // _httpClient = new HttpClient(); 
+            // _httpClient.BaseAddress = new Uri("https://localhost:7001/"); 
         }
 
-        ~frmContacts() {
-            Trace.WriteLine("contact destructor.");
-            _httpClient.Dispose(); // Dispose HttpClient when the form is closed
-        }
+        // Remove the destructor as HttpClient is no longer managed by the form
+        // ~frmContacts() {
+        //     Trace.WriteLine("contact destructor.");
+        //     _httpClient.Dispose(); 
+        // }
 
         // Changed to async Task to allow await calls
         async Task updateContacts()
@@ -51,38 +55,33 @@ namespace WcfClient
             lblStatus.Text = "Attempting connection...";
             try
             {
-                Trace.WriteLine("refreshing contacts.");
+                Trace.WriteLine("Refreshing contacts.");
 
-                // Make an HTTP GET request to your new Web API endpoint
-                HttpResponseMessage response = await _httpClient.GetAsync("api/contacts");
-                response.EnsureSuccessStatusCode(); // Throws an exception if the HTTP response status is an error code
-
-                string jsonResponse = await response.Content.ReadAsStringAsync();
+                // Use ApiClient.Client and GetFromJsonAsync
+                List<ContactDto>? contactList = await ApiClient.Client.GetFromJsonAsync<List<ContactDto>>("api/contacts");
                 
-                // Deserialize the JSON response into a list of ContactDto objects
-                List<ContactDto> contactList = JsonConvert.DeserializeObject<List<ContactDto>>(jsonResponse);
-                
-                // Convert the list of contacts to a DataTable for display
-                contacts = ContactDto.ToDataTable(contactList);
-                
-                lblStatus.Text = "complete";
-                dataGridView1.DataSource = contacts;
-                
+                if (contactList != null)
+                {
+                    contacts = ContactDto.ToDataTable(contactList);
+                    lblStatus.Text = "Complete";
+                    dataGridView1.DataSource = contacts;
+                }
+                else
+                {
+                    lblStatus.Text = "No contacts found or deserialization failed.";
+                }
             }
             catch (HttpRequestException httpEx)
             {
                 lblStatus.Text = $"HTTP Error: {httpEx.Message}";
                 Trace.TraceError($"HttpRequestException in updateContacts: {httpEx.Message}");
-            }
-            catch (JsonSerializationException jsonEx)
-            {
-                lblStatus.Text = $"JSON Error: {jsonEx.Message}";
-                Trace.TraceError($"JsonSerializationException in updateContacts: {jsonEx.Message}");
+                MessageBox.Show($"Error communicating with the API: {httpEx.Message}", "API Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception e)
             {
                 lblStatus.Text = $"General Error: {e.Message}";
                 Trace.TraceError($"General Exception in updateContacts: {e.ToString()}");
+                MessageBox.Show($"An unexpected error occurred: {e.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

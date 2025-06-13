@@ -1,117 +1,56 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{438BC178-C3F8-40AA-9896-3B95BD292692}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WcfClient</RootNamespace>
-    <AssemblyName>WcfClient</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
+    <!-- Newtonsoft.Json is already referenced, but ensure it's a PackageReference -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- Add this for HttpClient.GetFromJsonAsync, PostAsJsonAsync, PutAsJsonAsync -->
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="frmContacts.cs">
+    <!-- Ensure your existing forms and models are included -->
+    <Compile Update="frmContacts.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmContacts.Designer.cs">
+    <Compile Update="frmEditContact.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="frmTraceLog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Models\ContactDto.cs" />
+    <Compile Update="Models\LookupDto.cs" />
+    <Compile Update="Models\PersonRequestDto.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Ensure your existing resource and settings files are included -->
+    <EmbeddedResource Update="frmContacts.resx">
       <DependentUpon>frmContacts.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmEditContact.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmEditContact.Designer.cs">
+    </EmbeddedResource>
+    <EmbeddedResource Update="frmEditContact.resx">
       <DependentUpon>frmEditContact.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Models\ContactDto.cs" />
-    <Compile Include="Models\LookupDto.cs" />
-    <Compile Include="Models\PersonRequestDto.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="frmTraceLog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmTraceLog.Designer.cs">
+    </EmbeddedResource>
+    <EmbeddedResource Update="frmTraceLog.resx">
       <DependentUpon>frmTraceLog.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="frmContacts.resx">
-      <DependentUpon>frmContacts.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmEditContact.resx">
-      <DependentUpon>frmEditContact.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx">
+    <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="frmTraceLog.resx">
-      <DependentUpon>frmTraceLog.cs</DependentUpon>
-    </EmbeddedResource>
-    <None Include="Properties\DataSources\System.Data.DataTable.datasource" />
-    <None Include="Properties\Settings.settings">
+    <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

@@ -9,14 +9,17 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Net.Http.Json; // Add this for GetFromJsonAsync, PostAsJsonAsync, PutAsJsonAsync
 using Newtonsoft.Json; // For JSON deserialization
 using WcfClient.Models; // For DTOs
 namespace WcfClient
 {
     public partial class frmEditContact : Form
     {
-        private readonly HttpClient _httpClient = new HttpClient();
-        private const string BaseApiUrl = "https://localhost:7001"; // Adjust port if your API runs on a different one
+        // Remove the private HttpClient field as we will use ApiClient.Client
+        // private readonly HttpClient _httpClient = new HttpClient();
+        // Remove BaseApiUrl as it's now in ApiClient
+        // private const string BaseApiUrl = "https://localhost:7001"; 
         private int _contactUid; // To store the UID of the contact being edited
         public bool IsNewContact { get; private set; } // To determine if it's a new contact or existing
 
@@ -32,8 +35,9 @@ namespace WcfClient
         public frmEditContact(int uid)
         {
             InitializeComponent();
-            Trace.WriteLine("editing contact.");
-            _httpClient.BaseAddress = new Uri(BaseApiUrl);
+            Trace.WriteLine("Editing contact.");
+            // Remove _httpClient.BaseAddress assignment
+            // _httpClient.BaseAddress = new Uri(BaseApiUrl);
             _contactUid = uid;
             IsNewContact = (uid == 0); // If UID is 0, it's a new contact
 
@@ -53,18 +57,17 @@ namespace WcfClient
 
             _ = LoadLookups(); // Load prefixes and suffixes
         }
-        ~frmEditContact() {
-            Trace.WriteLine("edit contact destructor.");
-        }
+        // Remove the destructor as HttpClient is no longer managed by the form
+        // ~frmEditContact() {
+        //     Trace.WriteLine("edit contact destructor.");
+        // }
 
         private async Task LoadContactDetails(int uid)
         {
             try
             {
-                HttpResponseMessage response = await _httpClient.GetAsync($"/api/Contacts/{uid}");
-                response.EnsureSuccessStatusCode();
-                string jsonResponse = await response.Content.ReadAsStringAsync();
-                ContactDto contact = JsonConvert.DeserializeObject<ContactDto>(jsonResponse);
+                // Use ApiClient.Client and GetFromJsonAsync
+                ContactDto? contact = await ApiClient.Client.GetFromJsonAsync<ContactDto>($"api/Contacts/{uid}");
 
                 if (contact != null)
                 {
@@ -79,10 +82,24 @@ namespace WcfClient
                     comboBox1.SelectedValue = contact.PrefixId; // Prefix
                     comboBox2.SelectedValue = contact.SuffixId; // Suffix
                 }
+                else
+                {
+                    MessageBox.Show("Contact not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.DialogResult = DialogResult.Cancel;
+                    this.Close();
+                }
             }
             catch (HttpRequestException ex)
             {
                 MessageBox.Show($"Error loading contact details: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.DialogResult = DialogResult.Cancel;
+                this.Close();
             }
         }
 
@@ -91,26 +108,34 @@ namespace WcfClient
             try
             {
                 // Load Prefixes
-                HttpResponseMessage prefixResponse = await _httpClient.GetAsync("/api/Lookups/prefixes");
-                prefixResponse.EnsureSuccessStatusCode();
-                string prefixJson = await prefixResponse.Content.ReadAsStringAsync();
-                List<LookupDto> prefixes = JsonConvert.DeserializeObject<List<LookupDto>>(prefixJson);
-                comboBox1.DataSource = prefixes; // Use comboBox1 for prefixes
-                comboBox1.DisplayMember = "Description";
-                comboBox1.ValueMember = "Id";
+                // Use ApiClient.Client and GetFromJsonAsync
+                List<LookupDto>? prefixes = await ApiClient.Client.GetFromJsonAsync<List<LookupDto>>("api/Lookups/prefixes");
+                
+                if (prefixes != null)
+                {
+                    comboBox1.DataSource = prefixes; // Use comboBox1 for prefixes
+                    comboBox1.DisplayMember = "Description";
+                    comboBox1.ValueMember = "Id";
+                }
 
                 // Load Suffixes
-                HttpResponseMessage suffixResponse = await _httpClient.GetAsync("/api/Lookups/suffixes");
-                suffixResponse.EnsureSuccessStatusCode();
-                string suffixJson = await suffixResponse.Content.ReadAsStringAsync();
-                List<LookupDto> suffixes = JsonConvert.DeserializeObject<List<LookupDto>>(suffixJson);
-                comboBox2.DataSource = suffixes; // Use comboBox2 for suffixes
-                comboBox2.DisplayMember = "Description";
-                comboBox2.ValueMember = "Id";
+                // Use ApiClient.Client and GetFromJsonAsync
+                List<LookupDto>? suffixes = await ApiClient.Client.GetFromJsonAsync<List<LookupDto>>("api/Lookups/suffixes");
+                
+                if (suffixes != null)
+                {
+                    comboBox2.DataSource = suffixes; // Use comboBox2 for suffixes
+                    comboBox2.DisplayMember = "Description";
+                    comboBox2.ValueMember = "Id";
+                }
             }
             catch (HttpRequestException ex)
             {
                 MessageBox.Show($"Error loading lookup data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred loading lookups: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -123,12 +148,19 @@ namespace WcfClient
                 return;
             }
 
+            // Ensure SelectedValue is not null before casting
+            if (comboBox1.SelectedValue == null || comboBox2.SelectedValue == null)
+            {
+                MessageBox.Show("Please select a Prefix and Suffix.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             PersonRequestDto person = new PersonRequestDto
             {
                 FirstName = textBox2.Text, // First Name
                 LastName = textBox3.Text,  // Last Name
-                Prefix = (int)comboBox1.SelectedValue, // Prefix
-                Suffix = (int)comboBox2.SelectedValue, // Suffix
+                PrefixId = (int)comboBox1.SelectedValue, // Use PrefixId as per PersonRequestDto
+                SuffixId = (int)comboBox2.SelectedValue, // Use SuffixId as per PersonRequestDto
                 Address = textBox4.Text,   // Address
                 City = textBox5.Text,      // City
                 State = textBox6.Text,     // State
@@ -140,13 +172,13 @@ namespace WcfClient
                 HttpResponseMessage response;
                 if (IsNewContact)
                 {
-                    string jsonContent = JsonConvert.SerializeObject(person);
-                    response = await _httpClient.PostAsync("/api/Contacts", new StringContent(jsonContent, Encoding.UTF8, "application/json"));
+                    // Use PostAsJsonAsync
+                    response = await ApiClient.Client.PostAsJsonAsync("api/Contacts", person);
                 }
                 else
                 {
-                    string jsonContent = JsonConvert.SerializeObject(person);
-                    response = await _httpClient.PutAsync($"/api/Contacts/{_contactUid}", new StringContent(jsonContent, Encoding.UTF8, "application/json"));
+                    // Use PutAsJsonAsync
+                    response = await ApiClient.Client.PutAsJsonAsync($"api/Contacts/{_contactUid}", person);
                 }
 
                 response.EnsureSuccessStatusCode();
@@ -156,7 +188,13 @@ namespace WcfClient
             }
             catch (HttpRequestException ex)
             {
-                MessageBox.Show($"Error saving contact: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string errorContent = "No additional error details.";
+                if (ex.StatusCode.HasValue)
+                {
+                    // Attempt to read the response content for more details on HTTP errors
+                    errorContent = await ex.HttpResponseMessage.Content.ReadAsStringAsync();
+                }
+                MessageBox.Show($"Error saving contact: {ex.Message}\nDetails: {errorContent}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {

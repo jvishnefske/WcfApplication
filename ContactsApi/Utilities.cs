@@ -33,9 +33,10 @@ namespace ContactsApi
                 var command = connection.CreateCommand();
 
                 // Create Contacts table
+                // CORRECTED: Removed duplicate "PRIMARY" keyword
                 command.CommandText = @"
                     CREATE TABLE IF NOT EXISTS Contacts (
-                        Uid INTEGER PRIMARY PRIMARY KEY AUTOINCREMENT,
+                        Uid INTEGER PRIMARY KEY AUTOINCREMENT,
                         PrefixId INTEGER NOT NULL,
                         FirstName TEXT NOT NULL,
                         LastName TEXT NOT NULL,

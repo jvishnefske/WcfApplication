@@ -11,10 +11,12 @@ Example full stack .NET application. Console client (targeting .NET 8.0) consumi
 *   - [x] **Database Setup:** The `ContactsApi` now uses **SQLite**. The database file (`contacts.db`) will be automatically created and initialized with necessary tables (Contacts, Prefixes, Suffixes) and initial lookup data when the API starts for the first time. No manual setup is required.
 *   - [x] **API Configuration:** The `ContactsApi`'s database connection string is now configured in `appsettings.json` under the `ConnectionStrings:DefaultConnection` key. The `Utilities` class is now a service that reads this configuration. Ensure the gRPC endpoint is correctly exposed (e.g., `https://localhost:7001`).
 *   - [x] **Client Configuration:** Document how to configure the `Client` console application's gRPC endpoint address in `ApiClient.cs` to match the running `ContactsApi`.
-*   - [x] **Clean Build:** Achieve a build with zero errors and zero warnings across all projects. (Currently, `ContactsApi.Tests` has errors).
+*   - [x] **Clean Build:** Achieve a build with zero errors and zero warnings across all projects.
 *   - [ ] **Error Handling & Logging:** Enhance error handling in both client and API for more robust production use. Implement structured logging.
 *   - [ ] **User Interface:** The current client is a console application. If a graphical user interface (GUI) is desired, a new client project would need to be developed using a cross-platform UI framework (e.g., Avalonia UI, .NET MAUI).
-*   - [x] **Testing:** Add unit and integration tests for both the `ContactsApi` and `Client` projects. (Unit tests added for `ContactsApi`'s persistence and gRPC services).
+*   - [x] **Testing:**
+    *   - [x] **Unit Testing:** Unit tests are implemented for `ContactsApi`'s persistence layer (`UtilitiesTests.cs`) and gRPC services (`ContactsGrpcServiceTests.cs`, `LookupsGrpcServiceTests.cs`). These tests mock dependencies and use `TestServerCallContext` for isolated testing of service logic.
+    *   - [ ] **Integration Testing:** Implement integration tests where the gRPC API is hosted in an in-memory test server (e.g., `Microsoft.AspNetCore.TestHost`) and called using a gRPC client.
 *   - [ ] **Deployment:** Add basic instructions for deploying the `ContactsApi` to a Linux environment (e.g., Docker, Kestrel behind Nginx) and the `Client` console application.
 *   **Best Practices for Simplicity:**
     *   - [x] **Asynchronous Programming:** Ensure all I/O-bound and long-running operations are truly asynchronous to avoid blocking calls and simplify concurrent execution flow.

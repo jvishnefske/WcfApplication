@@ -25,12 +25,11 @@ namespace ContactsApi.Tests
             
             var mockConfig = new Mock<IConfiguration>();
             // --- REVISED IConfiguration MOCK SETUP for GetConnectionString ---
-            // This explicitly mocks the chain of GetSection calls that GetConnectionString uses.
-            var mockDefaultConnectionSection = new Mock<IConfigurationSection>();
-            mockDefaultConnectionSection.Setup(s => s.Value).Returns("DataSource=file::memory:?cache=shared");
-
+            // GetConnectionString("DefaultConnection") internally calls GetSection("ConnectionStrings")
+            // and then accesses the "DefaultConnection" key using an indexer on the returned section.
             var mockConnectionStringsSection = new Mock<IConfigurationSection>();
-            mockConnectionStringsSection.Setup(s => s.GetSection("DefaultConnection")).Returns(mockDefaultConnectionSection.Object);
+            mockConnectionStringsSection.Setup(s => s[It.Is<string>(key => key == "DefaultConnection")])
+                                        .Returns("DataSource=file::memory:?cache=shared");
 
             mockConfig.Setup(c => c.GetSection("ConnectionStrings")).Returns(mockConnectionStringsSection.Object);
             // --- END REVISED IConfiguration MOCK SETUP ---

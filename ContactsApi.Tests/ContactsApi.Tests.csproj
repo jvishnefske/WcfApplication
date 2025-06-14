@@ -30,6 +30,7 @@
 
     <!-- Reference to the project being tested -->
     <ProjectReference Include="..\ContactsApi\ContactsApi.csproj" />
+    <ProjectReference Include="..\Client\Client.csproj" />
   </ItemGroup>
 
 </Project>

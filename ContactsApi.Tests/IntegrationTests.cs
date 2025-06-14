@@ -2,7 +2,6 @@ using Xunit;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Grpc.Net.Client;
 using ContactsApi.Grpc; // This namespace contains the generated client types
-using Client; // This namespace contains the generated client types
 using ContactsApi;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;

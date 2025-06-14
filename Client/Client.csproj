@@ -31,9 +31,9 @@
 
   <ItemGroup>
     <!-- Define your .proto files for gRPC client generation -->
-    <!-- Ensure these paths are correct relative to the Client project -->
-    <Protobuf Include="..\ContactsApi\Protos\contacts.proto" GrpcServices="Client" />
-    <Protobuf Include="..\ContactsApi\Protos\lookups.proto" GrpcServices="Client" />
+    <!-- Corrected paths to Protos directory -->
+    <Protobuf Include="..\Protos\contacts.proto" GrpcServices="Client" />
+    <Protobuf Include="..\Protos\lookups.proto" GrpcServices="Client" />
     <!-- REMOVED: <Protobuf Include="Protos\google\protobuf\empty.proto" GrpcServices="Client" /> -->
   </ItemGroup>
 

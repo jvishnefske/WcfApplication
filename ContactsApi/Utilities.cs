@@ -259,5 +259,18 @@ namespace ContactsApi
                 await cmd.ExecuteNonQueryAsync();
             }
         }
+
+        public virtual async Task ClearContactsAsync()
+        {
+            _logger.LogInformation("Clearing all contacts from the database.");
+            using (var connection = getConnection())
+            {
+                await connection.OpenAsync();
+                var command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM Contacts;";
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
     }
 }

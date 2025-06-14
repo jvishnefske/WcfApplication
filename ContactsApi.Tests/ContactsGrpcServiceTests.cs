@@ -37,8 +37,8 @@ namespace ContactsApi.Tests
             // --- END REVISED IConfiguration SETUP ---
 
             // Initialize _utilitiesMock, passing the realConfig to its constructor.
-            // Moq will create a proxy for Utilities, and its constructor will be invoked with realConfig.
-            _utilitiesMock = new Mock<Utilities>(realConfig); 
+            // Moq will create a proxy for Utilities, and its constructor will be invoked with realConfig and a mock ILogger.
+            _utilitiesMock = new Mock<Utilities>(realConfig, new Mock<ILogger<Utilities>>().Object); 
 
             // Setup specific methods that ContactsGrpcService will call on Utilities.
             // These setups are crucial for the tests to pass, as the service calls these methods.

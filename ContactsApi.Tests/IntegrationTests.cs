@@ -14,7 +14,7 @@ namespace ContactsApi.Tests
 {
     // IClassFixture ensures a single instance of WebApplicationFactory is shared across all tests in this class.
     // This means the API application is started once for all tests in this fixture.
-    public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+    public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
     {
         private readonly WebApplicationFactory<Program> _factory;
         private readonly ContactsService.ContactsServiceClient _contactsClient;
@@ -48,6 +48,20 @@ namespace ContactsApi.Tests
             _contactsClient = new ContactsService.ContactsServiceClient(channel);
             _lookupsClient = new LookupsService.LookupsServiceClient(channel);
         }
+
+        // IAsyncLifetime methods for per-test setup/teardown
+        public async Task InitializeAsync()
+        {
+            // Get a scope to resolve services from the test server
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var utilities = scope.ServiceProvider.GetRequiredService<Utilities>();
+                await utilities.ClearContactsAsync(); // Clear contacts before each test
+            }
+        }
+
+        // DisposeAsync is called after each test method
+        public Task DisposeAsync() => Task.CompletedTask;
 
         [Fact]
         public async Task GetAllContacts_ReturnsEmptyListInitially()

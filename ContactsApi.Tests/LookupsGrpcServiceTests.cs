@@ -35,7 +35,7 @@ namespace ContactsApi.Tests
             // --- END REVISED IConfiguration SETUP ---
 
             // Initialize _utilitiesMock, passing the realConfig to its constructor.
-            _utilitiesMock = new Mock<Utilities>(realConfig); 
+            _utilitiesMock = new Mock<Utilities>(realConfig, new Mock<ILogger<Utilities>>().Object); 
 
             // Setup default behaviors for Utilities methods called by LookupsGrpcService
             _utilitiesMock.Setup(u => u.GetPrefixesAsync()).ReturnsAsync(new List<LookupDto>());

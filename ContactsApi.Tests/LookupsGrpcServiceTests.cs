@@ -23,19 +23,19 @@ namespace ContactsApi.Tests
         {
             _loggerMock = new Mock<ILogger<LookupsGrpcService>>();
             
-            var mockConfig = new Mock<IConfiguration>();
-            // --- REVISED IConfiguration MOCK SETUP for GetConnectionString ---
-            // GetConnectionString("DefaultConnection") internally calls GetSection("ConnectionStrings")
-            // and then accesses the "DefaultConnection" key using an indexer on the returned section.
-            var mockConnectionStringsSection = new Mock<IConfigurationSection>();
-            mockConnectionStringsSection.Setup(s => s[It.Is<string>(key => key == "DefaultConnection")])
-                                        .Returns("DataSource=file::memory:?cache=shared");
+            // --- REVISED IConfiguration SETUP for GetConnectionString ---
+            // Create a real IConfiguration instance with an in-memory connection string.
+            // This is the most robust way to handle GetConnectionString in tests.
+            var inMemorySettings = new Dictionary<string, string?> {
+                {"ConnectionStrings:DefaultConnection", "DataSource=file::memory:?cache=shared"}
+            };
+            IConfiguration realConfig = new ConfigurationBuilder()
+                .AddInMemoryCollection(inMemorySettings)
+                .Build();
+            // --- END REVISED IConfiguration SETUP ---
 
-            mockConfig.Setup(c => c.GetSection("ConnectionStrings")).Returns(mockConnectionStringsSection.Object);
-            // --- END REVISED IConfiguration MOCK SETUP ---
-
-            // Initialize _utilitiesMock, passing the configured mockConfig to its constructor.
-            _utilitiesMock = new Mock<Utilities>(mockConfig.Object); 
+            // Initialize _utilitiesMock, passing the realConfig to its constructor.
+            _utilitiesMock = new Mock<Utilities>(realConfig); 
 
             // Setup default behaviors for Utilities methods called by LookupsGrpcService
             _utilitiesMock.Setup(u => u.GetPrefixesAsync()).ReturnsAsync(new List<LookupDto>());

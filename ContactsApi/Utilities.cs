@@ -5,7 +5,7 @@ using System.Diagnostics;
 using ContactsApi.Models;
 using System.IO;
 using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks; // ADD THIS USING
+using System.Threading.Tasks;
 
 namespace ContactsApi
 {
@@ -22,18 +22,17 @@ namespace ContactsApi
 
         private SqliteConnection getConnection()
         {
-            return new SqliteConnection(_connectionString); // Use the injected connection string
+            return new SqliteConnection(_connectionString);
         }
 
-        public async Task InitializeDatabaseAsync() // CHANGED TO ASYNC
+        public async Task InitializeDatabaseAsync()
         {
             using (var connection = getConnection())
             {
-                await connection.OpenAsync(); // USE ASYNC
+                await connection.OpenAsync();
                 var command = connection.CreateCommand();
 
                 // Create Contacts table
-                // CORRECTED: Removed duplicate "PRIMARY" keyword
                 command.CommandText = @"
                     CREATE TABLE IF NOT EXISTS Contacts (
                         Uid INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,7 +45,7 @@ namespace ContactsApi
                         State TEXT,
                         Zip TEXT
                     );";
-                await command.ExecuteNonQueryAsync(); // USE ASYNC
+                await command.ExecuteNonQueryAsync();
 
                 // Create Prefixes table
                 command.CommandText = @"
@@ -54,7 +53,7 @@ namespace ContactsApi
                         Id INTEGER PRIMARY KEY,
                         Description TEXT NOT NULL UNIQUE
                     );";
-                await command.ExecuteNonQueryAsync(); // USE ASYNC
+                await command.ExecuteNonQueryAsync();
 
                 // Create Suffixes table
                 command.CommandText = @"
@@ -62,11 +61,11 @@ namespace ContactsApi
                         Id INTEGER PRIMARY KEY,
                         Description TEXT NOT NULL UNIQUE
                     );";
-                await command.ExecuteNonQueryAsync(); // USE ASYNC
+                await command.ExecuteNonQueryAsync();
 
                 // Populate Prefixes if empty
                 command.CommandText = "SELECT COUNT(*) FROM Prefixes;";
-                if (Convert.ToInt32(await command.ExecuteScalarAsync()) == 0) // USE ASYNC
+                if (Convert.ToInt32(await command.ExecuteScalarAsync()) == 0)
                 {
                     command.CommandText = @"
                         INSERT INTO Prefixes (Id, Description) VALUES
@@ -75,12 +74,12 @@ namespace ContactsApi
                         (3, 'Mrs.'),
                         (4, 'Dr.'),
                         (5, 'Prof.');";
-                    await command.ExecuteNonQueryAsync(); // USE ASYNC
+                    await command.ExecuteNonQueryAsync();
                 }
 
                 // Populate Suffixes if empty
                 command.CommandText = "SELECT COUNT(*) FROM Suffixes;";
-                if (Convert.ToInt32(await command.ExecuteScalarAsync()) == 0) // USE ASYNC
+                if (Convert.ToInt32(await command.ExecuteScalarAsync()) == 0)
                 {
                     command.CommandText = @"
                         INSERT INTO Suffixes (Id, Description) VALUES
@@ -89,24 +88,24 @@ namespace ContactsApi
                         (3, 'II'),
                         (4, 'III'),
                         (5, 'IV');";
-                    await command.ExecuteNonQueryAsync(); // USE ASYNC
+                    await command.ExecuteNonQueryAsync();
                 }
             }
             System.Diagnostics.Trace.WriteLine($"SQLite database initialized at: {_connectionString}");
         }
 
-
-        public async Task<ContactDto?> GetContactAsync(int uid) // CHANGED TO ASYNC
+        // ADD VIRTUAL KEYWORD TO ALL PUBLIC ASYNC METHODS
+        public virtual async Task<ContactDto?> GetContactAsync(int uid)
         {
             ContactDto? contact = null;
             using (SqliteConnection conn = getConnection())
             {
-                await conn.OpenAsync(); // USE ASYNC
+                await conn.OpenAsync();
                 SqliteCommand cmd = new SqliteCommand("SELECT Uid, PrefixId, FirstName, LastName, SuffixId, Address, City, State, Zip FROM Contacts WHERE Uid = @Uid", conn);
                 cmd.Parameters.AddWithValue("@Uid", uid);
-                using (SqliteDataReader reader = await cmd.ExecuteReaderAsync()) // USE ASYNC
+                using (SqliteDataReader reader = await cmd.ExecuteReaderAsync())
                 {
-                    if (await reader.ReadAsync()) // USE ASYNC
+                    if (await reader.ReadAsync())
                     {
                         contact = new ContactDto
                         {
@@ -126,18 +125,19 @@ namespace ContactsApi
             return contact;
         }
 
-        public async Task<List<ContactDto>> GetAllContactsAsync() // CHANGED TO ASYNC
+        // ADD VIRTUAL KEYWORD
+        public virtual async Task<List<ContactDto>> GetAllContactsAsync()
         {
             System.Diagnostics.Trace.WriteLine("Refreshing contacts.");
 
             List<ContactDto> contacts = new List<ContactDto>();
             using (SqliteConnection conn = getConnection())
             {
-                await conn.OpenAsync(); // USE ASYNC
+                await conn.OpenAsync();
                 SqliteCommand cmd = new SqliteCommand("SELECT Uid, PrefixId, FirstName, LastName, SuffixId, Address, City, State, Zip FROM Contacts", conn);
-                using (SqliteDataReader reader = await cmd.ExecuteReaderAsync()) // USE ASYNC
+                using (SqliteDataReader reader = await cmd.ExecuteReaderAsync())
                 {
-                    while (await reader.ReadAsync()) // USE ASYNC
+                    while (await reader.ReadAsync())
                     {
                         contacts.Add(new ContactDto
                         {
@@ -157,21 +157,22 @@ namespace ContactsApi
             return contacts;
         }
 
-        public async Task<List<LookupDto>> GetPrefixesAsync() // CHANGED TO ASYNC
+        // ADD VIRTUAL KEYWORD
+        public virtual async Task<List<LookupDto>> GetPrefixesAsync()
         {
             List<LookupDto> prefixes = new List<LookupDto>();
             using (SqliteConnection conn = getConnection())
             {
-                await conn.OpenAsync(); // USE ASYNC
+                await conn.OpenAsync();
                 SqliteCommand cmd = new SqliteCommand("SELECT Id, Description FROM Prefixes", conn);
-                using (SqliteDataReader reader = await cmd.ExecuteReaderAsync()) // USE ASYNC
+                using (SqliteDataReader reader = await cmd.ExecuteReaderAsync())
                 {
-                    while (await reader.ReadAsync()) // USE ASYNC
+                    while (await reader.ReadAsync())
                     {
                         prefixes.Add(new LookupDto
                         {
                             Id = reader.GetInt32(0),
-                            Description = reader.IsDBNull(1) ? null : reader.GetString(1) // Handle potential null
+                            Description = reader.IsDBNull(1) ? null : reader.GetString(1)
                         });
                     }
                 }
@@ -179,21 +180,22 @@ namespace ContactsApi
             }
         }
 
-        public async Task<List<LookupDto>> GetSuffixesAsync() // CHANGED TO ASYNC
+        // ADD VIRTUAL KEYWORD
+        public virtual async Task<List<LookupDto>> GetSuffixesAsync()
         {
             List<LookupDto> suffixes = new List<LookupDto>();
             using (SqliteConnection conn = getConnection())
             {
-                await conn.OpenAsync(); // USE ASYNC
+                await conn.OpenAsync();
                 SqliteCommand cmd = new SqliteCommand("SELECT Id, Description FROM Suffixes", conn);
-                using (SqliteDataReader reader = await cmd.ExecuteReaderAsync()) // USE ASYNC
+                using (SqliteDataReader reader = await cmd.ExecuteReaderAsync())
                 {
-                    while (await reader.ReadAsync()) // USE ASYNC
+                    while (await reader.ReadAsync())
                     {
                         suffixes.Add(new LookupDto
                         {
                             Id = reader.GetInt32(0),
-                            Description = reader.IsDBNull(1) ? null : reader.GetString(1) // Handle potential null
+                            Description = reader.IsDBNull(1) ? null : reader.GetString(1)
                         });
                     }
                 }
@@ -201,11 +203,12 @@ namespace ContactsApi
             }
         }
 
-        public async Task UpdateContactAsync(Int32 uid, String firstName, String lastName, Int32 prefix, Int32 suffix, String? address, String? city, String? state, String? zip) // CHANGED TO NULLABLE STRINGS
+        // ADD VIRTUAL KEYWORD
+        public virtual async Task UpdateContactAsync(Int32 uid, String firstName, String lastName, Int32 prefix, Int32 suffix, String? address, String? city, String? state, String? zip)
         {
             using (SqliteConnection conn = getConnection())
             {
-                await conn.OpenAsync(); // USE ASYNC
+                await conn.OpenAsync();
                 SqliteCommand cmd = new SqliteCommand(
                     "UPDATE Contacts SET FirstName = @FirstName, LastName = @LastName, PrefixId = @PrefixId, SuffixId = @SuffixId, Address = @Address, City = @City, State = @State, Zip = @Zip WHERE Uid = @Uid", conn);
                 cmd.Parameters.AddWithValue("@Uid", uid);
@@ -213,20 +216,21 @@ namespace ContactsApi
                 cmd.Parameters.AddWithValue("@LastName", lastName);
                 cmd.Parameters.AddWithValue("@PrefixId", prefix);
                 cmd.Parameters.AddWithValue("@SuffixId", suffix);
-                cmd.Parameters.AddWithValue("@Address", (object?)address ?? DBNull.Value); // Handle null for DB
+                cmd.Parameters.AddWithValue("@Address", (object?)address ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@City", (object?)city ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@State", (object?)state ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Zip", (object?)zip ?? DBNull.Value);
 
-                await cmd.ExecuteNonQueryAsync(); // USE ASYNC
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 
-        public async Task InsertContactAsync(String firstName, String lastName, Int32 prefix, Int32 suffix, String? address, String? city, String? state, String? zip) // CHANGED TO NULLABLE STRINGS
+        // ADD VIRTUAL KEYWORD
+        public virtual async Task InsertContactAsync(String firstName, String lastName, Int32 prefix, Int32 suffix, String? address, String? city, String? state, String? zip)
         {
             using (SqliteConnection conn = getConnection())
             {
-                await conn.OpenAsync(); // USE ASYNC
+                await conn.OpenAsync();
                 // Removed Uid from INSERT as it's AUTOINCREMENT
                 SqliteCommand cmd = new SqliteCommand(
                     "INSERT INTO Contacts (FirstName, LastName, PrefixId, SuffixId, Address, City, State, Zip) VALUES (@FirstName, @LastName, @PrefixId, @SuffixId, @Address, @City, @State, @Zip)", conn);
@@ -234,12 +238,12 @@ namespace ContactsApi
                 cmd.Parameters.AddWithValue("@LastName", lastName);
                 cmd.Parameters.AddWithValue("@PrefixId", prefix);
                 cmd.Parameters.AddWithValue("@SuffixId", suffix);
-                cmd.Parameters.AddWithValue("@Address", (object?)address ?? DBNull.Value); // Handle null for DB
+                cmd.Parameters.AddWithValue("@Address", (object?)address ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@City", (object?)city ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@State", (object?)state ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Zip", (object?)zip ?? DBNull.Value);
 
-                await cmd.ExecuteNonQueryAsync(); // USE ASYNC
+                await cmd.ExecuteNonQueryAsync();
             }
         }
     }

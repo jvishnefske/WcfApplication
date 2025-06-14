@@ -27,11 +27,9 @@ namespace ContactsApi.Tests
             
             var mockConfig = new Mock<IConfiguration>();
             
-            // --- REVISED IConfiguration MOCK SETUP for GetConnectionString ---
             // Directly mock the IConfiguration indexer that GetConnectionString uses.
             mockConfig.SetupGet(c => c["ConnectionStrings:DefaultConnection"])
                       .Returns("DataSource=file::memory:?cache=shared");
-            // --- END REVISED IConfiguration MOCK SETUP ---
 
             // Initialize _utilitiesMock, passing the configured mockConfig to its constructor.
             _utilitiesMock = new Mock<Utilities>(mockConfig.Object); 

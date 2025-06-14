@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ContactsApi; // ADD THIS USING DIRECTIVE
+using ContactsApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,3 +32,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+// Make the Program class public partial for WebApplicationFactory to access it for integration tests
+public partial class Program { }

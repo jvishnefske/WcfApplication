@@ -1,11 +1,12 @@
 using Xunit;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Grpc.Net.Client;
-using ContactsApi.Grpc;
+using ContactsApi.Grpc; // This namespace contains the generated client types
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using System.Linq;
 using Grpc.Core; // For RpcException
+using System; // For Uri
 
 namespace ContactsApi.Tests
 {
@@ -13,8 +14,9 @@ namespace ContactsApi.Tests
     public class IntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     {
         private readonly WebApplicationFactory<Program> _factory;
-        private readonly ContactsService.ContactsServiceClient _contactsClient;
-        private readonly LookupsService.LookupsServiceClient _lookupsClient;
+        // Corrected client type references: ContactsServiceClient and LookupsServiceClient are directly under ContactsApi.Grpc
+        private readonly ContactsServiceClient _contactsClient;
+        private readonly LookupsServiceClient _lookupsClient;
 
         public IntegrationTests(WebApplicationFactory<Program> factory)
         {
@@ -25,8 +27,9 @@ namespace ContactsApi.Tests
             var client = _factory.CreateDefaultClient(new Uri("http://localhost"));
             var channel = GrpcChannel.ForAddress(client.BaseAddress!, new GrpcChannelOptions { HttpClient = client });
 
-            _contactsClient = new ContactsService.ContactsServiceClient(channel);
-            _lookupsClient = new LookupsService.LookupsServiceClient(channel);
+            // Corrected client instantiation
+            _contactsClient = new ContactsServiceClient(channel);
+            _lookupsClient = new LookupsServiceClient(channel);
         }
 
         [Fact]

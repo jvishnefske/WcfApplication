@@ -180,8 +180,8 @@ namespace Client // Corrected namespace
 
         static async Task<PersonRequest?> GetPersonRequestFromConsole(Contact? existingContact)
         {
-            var prefixes = await GetLookups((request, options) => ApiClient.LookupsClient.GetPrefixesAsync(request, options));
-            var suffixes = await GetLookups((request, options) => ApiClient.LookupsClient.GetSuffixesAsync(request, options));
+            var prefixes = await GetLookups((request, options) => ApiClient.LookupsClient.GetPrefixesAsync(request, options ?? new CallOptions()));
+            var suffixes = await GetLookups((request, options) => ApiClient.LookupsClient.GetSuffixesAsync(request, options ?? new CallOptions()));
  
             string firstName = ReadInput("First Name", existingContact?.FirstName ?? string.Empty);
             string lastName = ReadInput("Last Name", existingContact?.LastName ?? string.Empty);

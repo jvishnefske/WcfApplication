@@ -1,45 +1,33 @@
+using ContactsApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ContactsApi.Services;
-using ContactsApi; // ADD THIS USING for Utilities
+using Microsoft.Extensions.Logging; // ADD THIS USING
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 builder.Services.AddGrpc();
+builder.Services.AddSingleton<Utilities>(); // Register Utilities as a singleton service
 
-// ADD Utilities as a singleton service
-builder.Services.AddSingleton<Utilities>();
+// Configure logging
+builder.Logging.ClearProviders(); // Clear default providers
+builder.Logging.AddConsole(); // Add console logger
+builder.Logging.AddDebug(); // Add debug logger
 
 var app = builder.Build();
 
-// Initialize the database on startup
-// Get the Utilities instance from the service provider and call InitializeDatabase
-using (var scope = app.Services.CreateScope())
-{
-    var utilities = scope.ServiceProvider.GetRequiredService<Utilities>();
-    await utilities.InitializeDatabaseAsync(); // CALL ASYNC VERSION
-}
-
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
 app.MapGrpcService<ContactsGrpcService>();
 app.MapGrpcService<LookupsGrpcService>();
+app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+
+// Initialize the database on startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var utilities = services.GetRequiredService<Utilities>();
+    await utilities.InitializeDatabaseAsync();
+}
 
 app.Run();

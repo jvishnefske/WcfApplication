@@ -24,6 +24,10 @@
     <!-- Mocking Framework -->
     <PackageReference Include="Moq" Version="4.20.70" />
 
+    <!-- Integration Testing Packages -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.4" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.62.0" />
+
     <!-- Reference to the project being tested -->
     <ProjectReference Include="..\ContactsApi\ContactsApi.csproj" />
   </ItemGroup>

@@ -1,44 +1,56 @@
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
 using ContactsApi.Grpc;
 using ContactsApi.Models;
 using Google.Protobuf.WellKnownTypes;
-using ContactsApi; // ADD THIS USING for Utilities
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ContactsApi.Services
 {
     public class LookupsGrpcService : ContactsApi.Grpc.LookupsService.LookupsServiceBase
     {
         private readonly ILogger<LookupsGrpcService> _logger;
-        private readonly Utilities _utilities; // ADD THIS FIELD
+        private readonly Utilities _utilities;
 
-        public LookupsGrpcService(ILogger<LookupsGrpcService> logger, Utilities utilities) // ADD Utilities to constructor
+        public LookupsGrpcService(ILogger<LookupsGrpcService> logger, Utilities utilities)
         {
             _logger = logger;
-            _utilities = utilities; // ASSIGN Utilities
+            _utilities = utilities;
         }
 
-        public override async Task<GetLookupsResponse> GetPrefixes(Empty request, ServerCallContext context) // ADD ASYNC
+        public override async Task<GetLookupsResponse> GetPrefixes(Empty request, ServerCallContext context)
         {
-            _logger.LogInformation("Getting prefixes via gRPC.");
-            var prefixes = await _utilities.GetPrefixesAsync(); // CALL non-static method ASYNC
-            var response = new GetLookupsResponse();
-            foreach (var lookupDto in prefixes)
+            try
             {
-                response.Lookups.Add(MapLookupDtoToGrpcLookup(lookupDto));
+                _logger.LogInformation("Received GetPrefixes request.");
+                var prefixDtos = await _utilities.GetPrefixesAsync();
+                var grpcLookups = prefixDtos.Select(MapLookupDtoToGrpcLookup).ToList();
+                return new GetLookupsResponse { Lookups = { grpcLookups } };
             }
-            return response; // No Task.FromResult needed for async methods
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting prefixes.");
+                throw new RpcException(new Status(StatusCode.Internal, $"Error getting prefixes: {ex.Message}"));
+            }
         }
 
-        public override async Task<GetLookupsResponse> GetSuffixes(Empty request, ServerCallContext context) // ADD ASYNC
+        public override async Task<GetLookupsResponse> GetSuffixes(Empty request, ServerCallContext context)
         {
-            _logger.LogInformation("Getting suffixes via gRPC.");
-            var suffixes = await _utilities.GetSuffixesAsync(); // CALL non-static method ASYNC
-            var response = new GetLookupsResponse();
-            foreach (var lookupDto in suffixes)
+            try
             {
-                response.Lookups.Add(MapLookupDtoToGrpcLookup(lookupDto));
+                _logger.LogInformation("Received GetSuffixes request.");
+                var suffixDtos = await _utilities.GetSuffixesAsync();
+                var grpcLookups = suffixDtos.Select(MapLookupDtoToGrpcLookup).ToList();
+                return new GetLookupsResponse { Lookups = { grpcLookups } };
             }
-            return response; // No Task.FromResult needed for async methods
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting suffixes.");
+                throw new RpcException(new Status(StatusCode.Internal, $"Error getting suffixes: {ex.Message}"));
+            }
         }
 
         private ContactsApi.Grpc.Lookup MapLookupDtoToGrpcLookup(LookupDto dto)

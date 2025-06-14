@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
+using Microsoft.Extensions.Logging; // ADDED for Utilities constructor
 
 namespace ContactsApi.Tests
 {
@@ -16,11 +17,12 @@ namespace ContactsApi.Tests
         private readonly SqliteConnection _connection;
         private readonly Utilities _utilities;
         private readonly IConfiguration _configuration; // Store configuration for Utilities
+        private readonly ILogger<Utilities> _logger; // ADDED for Utilities constructor
 
         public UtilitiesTests()
         {
             // Use an in-memory SQLite database for testing with shared cache
-            _connection = new SqliteConnection("DataSource=file::memory:?cache=shared"); // UPDATED CONNECTION STRING
+            _connection = new SqliteConnection("DataSource=file::memory:?cache=shared");
             
             // Create a real IConfiguration instance with an in-memory connection string
             // Fix CS8620 warning by making values nullable
@@ -31,8 +33,11 @@ namespace ContactsApi.Tests
                 .AddInMemoryCollection(inMemorySettings)
                 .Build();
 
-            // Instantiate the real Utilities class with the configured IConfiguration
-            _utilities = new Utilities(_configuration);
+            // Create a mock logger for Utilities
+            _logger = new Mock<ILogger<Utilities>>().Object;
+
+            // Instantiate the real Utilities class with the configured IConfiguration and logger
+            _utilities = new Utilities(_configuration, _logger);
         }
 
         // InitializeAsync is called before each test method

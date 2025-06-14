@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Grpc.Core;
-using Google.Protobuf.WellKnownTypes; // For Empty message
-using Client.Grpc; // Namespace for generated gRPC client code
+using Client.Grpc;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core; // For RpcException
 
 namespace Client // Corrected namespace
 {
@@ -12,25 +11,23 @@ namespace Client // Corrected namespace
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Contacts gRPC Client");
-            Console.WriteLine("--------------------");
+            Console.WriteLine("Contacts Client Application");
+            Console.WriteLine("---------------------------");
 
             try
             {
                 await RunClientOperations();
             }
-            catch (RpcException ex)
-            {
-                Console.WriteLine($"gRPC Error: {ex.Status.StatusCode} - {ex.Status.Detail}");
-            }
             catch (Exception ex)
             {
-                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"An unhandled error occurred: {ex.Message}");
+                Console.ResetColor();
             }
             finally
             {
-                ApiClient.Shutdown(); // Ensure the gRPC channel is disposed
-                Console.WriteLine("\nPress any key to exit...");
+                ApiClient.Shutdown();
+                Console.WriteLine("\nPress any key to exit.");
                 Console.ReadKey();
             }
         }
@@ -43,195 +40,157 @@ namespace Client // Corrected namespace
                 Console.WriteLine("1. List All Contacts");
                 Console.WriteLine("2. Get Contact by UID");
                 Console.WriteLine("3. Add New Contact");
-                Console.WriteLine("4. Update Contact");
+                Console.WriteLine("4. Update Existing Contact");
                 Console.WriteLine("5. Exit");
-                Console.Write("Enter your choice: ");
+                Console.Write("Enter choice: ");
 
                 string? choice = Console.ReadLine();
-                Console.WriteLine();
 
-                switch (choice)
+                try
                 {
-                    case "1":
-                        await ListAllContacts();
-                        break;
-                    case "2":
-                        await GetContactByUid();
-                        break;
-                    case "3":
-                        await AddNewContact();
-                        break;
-                    case "4":
-                        await UpdateExistingContact();
-                        break;
-                    case "5":
-                        return; // Exit the application
-                    default:
-                        Console.WriteLine("Invalid choice. Please try again.");
-                        break;
+                    switch (choice)
+                    {
+                        case "1":
+                            await ListAllContacts();
+                            break;
+                        case "2":
+                            await GetContactByUid();
+                            break;
+                        case "3":
+                            await AddNewContact();
+                            break;
+                        case "4":
+                            await UpdateExistingContact();
+                            break;
+                        case "5":
+                            return;
+                        default:
+                            Console.WriteLine("Invalid choice. Please try again.");
+                            break;
+                    }
+                }
+                catch (RpcException rpcEx)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"gRPC Error (Status: {rpcEx.Status.StatusCode}): {rpcEx.Status.Detail}");
+                    Console.ResetColor();
+                }
+                catch (Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"An unexpected error occurred during operation: {ex.Message}");
+                    Console.ResetColor();
                 }
             }
         }
 
         static async Task ListAllContacts()
         {
-            Console.WriteLine("--- All Contacts ---");
-            try
+            Console.WriteLine("\n--- Listing All Contacts ---");
+            var response = await ApiClient.ContactsClient.GetAllContactsAsync(new Empty());
+            if (response.Contacts.Count == 0)
             {
-                var response = await ApiClient.ContactsClient.GetAllContactsAsync(new Empty());
-                if (response.Contacts.Any())
-                {
-                    foreach (var contact in response.Contacts)
-                    {
-                        Console.WriteLine($"UID: {contact.Uid}, Name: {contact.FirstName} {contact.LastName}, Address: {contact.Address}, {contact.City}, {contact.State} {contact.Zip}");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("No contacts found.");
-                }
+                Console.WriteLine("No contacts found.");
+                return;
             }
-            catch (RpcException ex)
+
+            foreach (var contact in response.Contacts)
             {
-                Console.WriteLine($"Error listing contacts: {ex.Status.Detail}");
+                Console.WriteLine($"UID: {contact.Uid}, Name: {contact.FirstName} {contact.LastName}, Address: {contact.Address}, City: {contact.City}, State: {contact.State}, Zip: {contact.Zip}");
             }
         }
 
         static async Task GetContactByUid()
         {
-            Console.Write("Enter Contact UID: ");
-            if (int.TryParse(Console.ReadLine(), out int uid))
-            {
-                try
-                {
-                    var request = new GetContactRequest { Uid = uid };
-                    var contact = await ApiClient.ContactsClient.GetContactAsync(request);
-                    Console.WriteLine($"--- Contact Details (UID: {contact.Uid}) ---");
-                    Console.WriteLine($"First Name: {contact.FirstName}");
-                    Console.WriteLine($"Last Name: {contact.LastName}");
-                    Console.WriteLine($"Prefix ID: {contact.PrefixId}");
-                    Console.WriteLine($"Suffix ID: {contact.SuffixId}");
-                    Console.WriteLine($"Address: {contact.Address}");
-                    Console.WriteLine($"City: {contact.City}");
-                    Console.WriteLine($"State: {contact.State}");
-                    Console.WriteLine($"Zip: {contact.Zip}");
-                }
-                catch (RpcException ex) when (ex.Status.StatusCode == StatusCode.NotFound)
-                {
-                    Console.WriteLine($"Contact with UID {uid} not found.");
-                }
-                catch (RpcException ex)
-                {
-                    Console.WriteLine($"Error getting contact: {ex.Status.Detail}");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Invalid UID.");
-            }
-        }
-
-        static async Task AddNewContact()
-        {
-            Console.WriteLine("--- Add New Contact ---");
-            var personRequest = await GetPersonRequestFromConsole();
-            if (personRequest == null) return;
-
-            try
-            {
-                var response = await ApiClient.ContactsClient.InsertContactAsync(personRequest);
-                if (response.Success)
-                {
-                    Console.WriteLine("Contact added successfully!");
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to add contact: {response.Message}");
-                }
-            }
-            catch (RpcException ex)
-            {
-                Console.WriteLine($"Error adding contact: {ex.Status.Detail}");
-            }
-        }
-
-        static async Task UpdateExistingContact()
-        {
-            Console.Write("Enter UID of contact to update: ");
-            if (!int.TryParse(Console.ReadLine(), out int uid))
+            Console.WriteLine("\n--- Get Contact by UID ---");
+            int uid = ReadIntInput("Enter Contact UID: ", 0);
+            if (uid <= 0)
             {
                 Console.WriteLine("Invalid UID.");
                 return;
             }
 
-            try
+            var request = new GetContactRequest { Uid = uid };
+            var contact = await ApiClient.ContactsClient.GetContactAsync(request);
+            
+            // If RpcException with NotFound status is thrown, it's caught by RunClientOperations
+            Console.WriteLine($"UID: {contact.Uid}, Name: {contact.FirstName} {contact.LastName}, Address: {contact.Address}, City: {contact.City}, State: {contact.State}, Zip: {contact.Zip}");
+        }
+
+        static async Task AddNewContact()
+        {
+            Console.WriteLine("\n--- Add New Contact ---");
+            var personRequest = await GetPersonRequestFromConsole(null);
+            if (personRequest == null) return;
+
+            var response = await ApiClient.ContactsClient.InsertContactAsync(personRequest);
+            if (response.Success)
             {
-                // First, get the existing contact details
-                var existingContact = await ApiClient.ContactsClient.GetContactAsync(new GetContactRequest { Uid = uid });
-
-                Console.WriteLine($"--- Update Contact (UID: {uid}) ---");
-                Console.WriteLine("Enter new values (leave blank to keep current value):");
-
-                var updatedContact = new Contact
-                {
-                    Uid = uid,
-                    FirstName = ReadInput($"First Name ({existingContact.FirstName}): ", existingContact.FirstName),
-                    LastName = ReadInput($"Last Name ({existingContact.LastName}): ", existingContact.LastName),
-                    PrefixId = ReadIntInput($"Prefix ID ({existingContact.PrefixId}): ", existingContact.PrefixId),
-                    SuffixId = ReadIntInput($"Suffix ID ({existingContact.SuffixId}): ", existingContact.SuffixId),
-                    Address = ReadInput($"Address ({existingContact.Address}): ", existingContact.Address),
-                    City = ReadInput($"City ({existingContact.City}): ", existingContact.City),
-                    State = ReadInput($"State ({existingContact.State}): ", existingContact.State),
-                    Zip = ReadInput($"Zip ({existingContact.Zip}): ", existingContact.Zip)
-                };
-
-                var response = await ApiClient.ContactsClient.UpdateContactAsync(updatedContact);
-                if (response.Success)
-                {
-                    Console.WriteLine("Contact updated successfully!");
-                }
-                else
-                {
-                    Console.WriteLine($"Failed to update contact: {response.Message}");
-                }
+                Console.WriteLine($"Success: {response.Message}");
             }
-            catch (RpcException ex) when (ex.Status.StatusCode == StatusCode.NotFound)
+            else
             {
-                Console.WriteLine($"Contact with UID {uid} not found.");
-            }
-            catch (RpcException ex)
-            {
-                Console.WriteLine($"Error updating contact: {ex.Status.Detail}");
+                Console.WriteLine($"Failed: {response.Message}");
             }
         }
 
-        static async Task<PersonRequest?> GetPersonRequestFromConsole()
+        static async Task UpdateExistingContact()
+        {
+            Console.WriteLine("\n--- Update Existing Contact ---");
+            int uid = ReadIntInput("Enter Contact UID to update: ", 0);
+            if (uid <= 0)
+            {
+                Console.WriteLine("Invalid UID.");
+                return;
+            }
+
+            var existingContact = await ApiClient.ContactsClient.GetContactAsync(new GetContactRequest { Uid = uid });
+            if (existingContact == null)
+            {
+                Console.WriteLine($"Contact with UID {uid} not found.");
+                return;
+            }
+
+            var personRequest = await GetPersonRequestFromConsole(existingContact);
+            if (personRequest == null) return;
+
+            var contactToUpdate = new Contact
+            {
+                Uid = uid,
+                FirstName = personRequest.FirstName,
+                LastName = personRequest.LastName,
+                PrefixId = personRequest.PrefixId,
+                SuffixId = personRequest.SuffixId,
+                Address = personRequest.Address,
+                City = personRequest.City,
+                State = personRequest.State,
+                Zip = personRequest.Zip
+            };
+
+            var response = await ApiClient.ContactsClient.UpdateContactAsync(contactToUpdate);
+            if (response.Success)
+            {
+                Console.WriteLine($"Success: {response.Message}");
+            }
+            else
+            {
+                Console.WriteLine($"Failed: {response.Message}");
+            }
+        }
+
+        static async Task<PersonRequest?> GetPersonRequestFromConsole(Contact? existingContact)
         {
             var prefixes = await GetLookups(ApiClient.LookupsClient.GetPrefixesAsync);
             var suffixes = await GetLookups(ApiClient.LookupsClient.GetSuffixesAsync);
 
-            Console.Write("First Name: ");
-            string? firstName = Console.ReadLine();
-            Console.Write("Last Name: ");
-            string? lastName = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
-            {
-                Console.WriteLine("First Name and Last Name are required.");
-                return null;
-            }
-
-            int prefixId = GetLookupIdFromConsole("Prefix", prefixes);
-            int suffixId = GetLookupIdFromConsole("Suffix", suffixes);
-
-            Console.Write("Address: ");
-            string? address = Console.ReadLine();
-            Console.Write("City: ");
-            string? city = Console.ReadLine();
-            Console.Write("State: ");
-            string? state = Console.ReadLine();
-            Console.Write("Zip: ");
-            string? zip = Console.ReadLine();
+            string firstName = ReadInput("First Name", existingContact?.FirstName ?? string.Empty);
+            string lastName = ReadInput("Last Name", existingContact?.LastName ?? string.Empty);
+            int prefixId = GetLookupIdFromConsole("Prefix", prefixes, existingContact?.PrefixId ?? 0);
+            int suffixId = GetLookupIdFromConsole("Suffix", suffixes, existingContact?.SuffixId ?? 0);
+            string address = ReadInput("Address", existingContact?.Address ?? string.Empty);
+            string city = ReadInput("City", existingContact?.City ?? string.Empty);
+            string state = ReadInput("State", existingContact?.State ?? string.Empty);
+            string zip = ReadInput("Zip", existingContact?.Zip ?? string.Empty);
 
             return new PersonRequest
             {
@@ -239,10 +198,10 @@ namespace Client // Corrected namespace
                 LastName = lastName,
                 PrefixId = prefixId,
                 SuffixId = suffixId,
-                Address = address ?? string.Empty,
-                City = city ?? string.Empty,
-                State = state ?? string.Empty,
-                Zip = zip ?? string.Empty
+                Address = address,
+                City = city,
+                State = state,
+                Zip = zip
             };
         }
 
@@ -253,53 +212,61 @@ namespace Client // Corrected namespace
                 var response = await getLookupsFunc(new Empty(), null);
                 return response.Lookups.ToList();
             }
-            catch (RpcException ex)
+            catch (RpcException rpcEx)
             {
-                Console.WriteLine($"Error loading lookups: {ex.Status.Detail}");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Error fetching lookups (Status: {rpcEx.Status.StatusCode}): {rpcEx.Status.Detail}");
+                Console.ResetColor();
+                return new List<Lookup>();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"An unexpected error occurred fetching lookups: {ex.Message}");
+                Console.ResetColor();
                 return new List<Lookup>();
             }
         }
 
-        static int GetLookupIdFromConsole(string lookupType, List<Lookup> lookups)
+        static int GetLookupIdFromConsole(string lookupType, List<Lookup> lookups, int currentValue)
         {
-            if (!lookups.Any())
+            if (lookups == null || !lookups.Any())
             {
                 Console.WriteLine($"No {lookupType} options available.");
-                return 0; // Or handle as an error
+                return 0;
             }
 
-            Console.WriteLine($"Available {lookupType}s:");
+            Console.WriteLine($"\nAvailable {lookupType}s:");
             foreach (var lookup in lookups)
             {
-                Console.WriteLine($"  {lookup.Id}. {lookup.Description}");
+                Console.WriteLine($"{lookup.Id}. {lookup.Description}");
             }
 
-            while (true)
+            int selectedId = ReadIntInput($"Enter {lookupType} ID (current: {currentValue})", currentValue);
+            while (!lookups.Any(l => l.Id == selectedId))
             {
-                Console.Write($"Enter {lookupType} ID: ");
-                if (int.TryParse(Console.ReadLine(), out int id) && lookups.Any(l => l.Id == id))
-                {
-                    return id;
-                }
-                Console.WriteLine("Invalid ID. Please choose from the list.");
+                Console.WriteLine("Invalid ID. Please choose from the list above.");
+                selectedId = ReadIntInput($"Enter {lookupType} ID (current: {currentValue})", currentValue);
             }
+            return selectedId;
         }
 
         static string ReadInput(string prompt, string currentValue)
         {
-            Console.Write(prompt);
+            Console.Write($"{prompt} (current: {currentValue}): ");
             string? input = Console.ReadLine();
-            return string.IsNullOrWhiteSpace(input) ? currentValue : input;
+            return string.IsNullOrEmpty(input) ? currentValue : input;
         }
 
         static int ReadIntInput(string prompt, int currentValue)
         {
-            Console.Write(prompt);
+            Console.Write($"{prompt} (current: {currentValue}): ");
             string? input = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(input)) return currentValue;
-            if (int.TryParse(input, out int result)) return result;
-            Console.WriteLine("Invalid number. Keeping current value.");
-            return currentValue;
+            if (int.TryParse(input, out int result))
+            {
+                return result;
+            }
+            return currentValue; // Return current value if input is invalid
         }
     }
 }

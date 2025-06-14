@@ -6,18 +6,21 @@ using ContactsApi.Models;
 using System.IO;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging; // ADD THIS USING
 
 namespace ContactsApi
 {
     public class Utilities
     {
         private readonly string _connectionString;
+        private readonly ILogger<Utilities> _logger; // ADD THIS FIELD
 
-        public Utilities(IConfiguration configuration)
+        public Utilities(IConfiguration configuration, ILogger<Utilities> logger) // ADD ILogger PARAMETER
         {
+            _logger = logger; // ASSIGN LOGGER
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? 
                                 throw new InvalidOperationException("DefaultConnection connection string not found.");
-            System.Diagnostics.Trace.WriteLine("Utilities initialized with connection string from config.");
+            _logger.LogInformation("Utilities initialized with connection string: {ConnectionString}", _connectionString); // USE LOGGER
         }
 
         private SqliteConnection getConnection()
@@ -27,76 +30,87 @@ namespace ContactsApi
 
         public async Task InitializeDatabaseAsync()
         {
-            using (var connection = getConnection())
+            _logger.LogInformation("Initializing database schema.");
+            try
             {
-                await connection.OpenAsync();
-                var command = connection.CreateCommand();
-
-                // Create Contacts table
-                command.CommandText = @"
-                    CREATE TABLE IF NOT EXISTS Contacts (
-                        Uid INTEGER PRIMARY KEY AUTOINCREMENT,
-                        PrefixId INTEGER NOT NULL,
-                        FirstName TEXT NOT NULL,
-                        LastName TEXT NOT NULL,
-                        SuffixId INTEGER NOT NULL,
-                        Address TEXT,
-                        City TEXT,
-                        State TEXT,
-                        Zip TEXT
-                    );";
-                await command.ExecuteNonQueryAsync();
-
-                // Create Prefixes table
-                command.CommandText = @"
-                    CREATE TABLE IF NOT EXISTS Prefixes (
-                        Id INTEGER PRIMARY KEY,
-                        Description TEXT NOT NULL UNIQUE
-                    );";
-                await command.ExecuteNonQueryAsync();
-
-                // Create Suffixes table
-                command.CommandText = @"
-                    CREATE TABLE IF NOT EXISTS Suffixes (
-                        Id INTEGER PRIMARY KEY,
-                        Description TEXT NOT NULL UNIQUE
-                    );";
-                await command.ExecuteNonQueryAsync();
-
-                // Populate Prefixes if empty
-                command.CommandText = "SELECT COUNT(*) FROM Prefixes;";
-                if (Convert.ToInt32(await command.ExecuteScalarAsync()) == 0)
+                using (var connection = getConnection())
                 {
-                    command.CommandText = @"
-                        INSERT INTO Prefixes (Id, Description) VALUES
-                        (1, 'Mr.'),
-                        (2, 'Ms.'),
-                        (3, 'Mrs.'),
-                        (4, 'Dr.'),
-                        (5, 'Prof.');";
-                    await command.ExecuteNonQueryAsync();
-                }
+                    await connection.OpenAsync();
+                    var command = connection.CreateCommand();
 
-                // Populate Suffixes if empty
-                command.CommandText = "SELECT COUNT(*) FROM Suffixes;";
-                if (Convert.ToInt32(await command.ExecuteScalarAsync()) == 0)
-                {
+                    // Create Contacts table
                     command.CommandText = @"
-                        INSERT INTO Suffixes (Id, Description) VALUES
-                        (1, 'Jr.'),
-                        (2, 'Sr.'),
-                        (3, 'II'),
-                        (4, 'III'),
-                        (5, 'IV');";
+                        CREATE TABLE IF NOT EXISTS Contacts (
+                            Uid INTEGER PRIMARY KEY AUTOINCREMENT,
+                            PrefixId INTEGER NOT NULL,
+                            FirstName TEXT NOT NULL,
+                            LastName TEXT NOT NULL,
+                            SuffixId INTEGER NOT NULL,
+                            Address TEXT,
+                            City TEXT,
+                            State TEXT,
+                            Zip TEXT
+                        );";
                     await command.ExecuteNonQueryAsync();
+
+                    // Create Prefixes table
+                    command.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Prefixes (
+                            Id INTEGER PRIMARY KEY,
+                            Description TEXT NOT NULL UNIQUE
+                        );";
+                    await command.ExecuteNonQueryAsync();
+
+                    // Create Suffixes table
+                    command.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Suffixes (
+                            Id INTEGER PRIMARY KEY,
+                            Description TEXT NOT NULL UNIQUE
+                        );";
+                    await command.ExecuteNonQueryAsync();
+
+                    // Populate Prefixes if empty
+                    command.CommandText = "SELECT COUNT(*) FROM Prefixes;";
+                    if (Convert.ToInt32(await command.ExecuteScalarAsync()) == 0)
+                    {
+                        _logger.LogInformation("Populating Prefixes table.");
+                        command.CommandText = @"
+                            INSERT INTO Prefixes (Id, Description) VALUES
+                            (1, 'Mr.'),
+                            (2, 'Ms.'),
+                            (3, 'Mrs.'),
+                            (4, 'Dr.'),
+                            (5, 'Prof.');";
+                        await command.ExecuteNonQueryAsync();
+                    }
+
+                    // Populate Suffixes if empty
+                    command.CommandText = "SELECT COUNT(*) FROM Suffixes;";
+                    if (Convert.ToInt32(await command.ExecuteScalarAsync()) == 0)
+                    {
+                        _logger.LogInformation("Populating Suffixes table.");
+                        command.CommandText = @"
+                            INSERT INTO Suffixes (Id, Description) VALUES
+                            (1, 'Jr.'),
+                            (2, 'Sr.'),
+                            (3, 'II'),
+                            (4, 'III'),
+                            (5, 'IV');";
+                        await command.ExecuteNonQueryAsync();
+                    }
                 }
+                _logger.LogInformation("SQLite database initialized successfully.");
             }
-            System.Diagnostics.Trace.WriteLine($"SQLite database initialized at: {_connectionString}");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing database.");
+                throw; // Re-throw to propagate the error
+            }
         }
 
-        // ADD VIRTUAL KEYWORD TO ALL PUBLIC ASYNC METHODS
         public virtual async Task<ContactDto?> GetContactAsync(int uid)
         {
+            _logger.LogDebug("Getting contact with Uid: {Uid}", uid);
             ContactDto? contact = null;
             using (SqliteConnection conn = getConnection())
             {
@@ -125,10 +139,9 @@ namespace ContactsApi
             return contact;
         }
 
-        // ADD VIRTUAL KEYWORD
         public virtual async Task<List<ContactDto>> GetAllContactsAsync()
         {
-            System.Diagnostics.Trace.WriteLine("Refreshing contacts.");
+            _logger.LogDebug("Getting all contacts.");
 
             List<ContactDto> contacts = new List<ContactDto>();
             using (SqliteConnection conn = getConnection())
@@ -157,9 +170,9 @@ namespace ContactsApi
             return contacts;
         }
 
-        // ADD VIRTUAL KEYWORD
         public virtual async Task<List<LookupDto>> GetPrefixesAsync()
         {
+            _logger.LogDebug("Getting all prefixes.");
             List<LookupDto> prefixes = new List<LookupDto>();
             using (SqliteConnection conn = getConnection())
             {
@@ -180,9 +193,9 @@ namespace ContactsApi
             }
         }
 
-        // ADD VIRTUAL KEYWORD
         public virtual async Task<List<LookupDto>> GetSuffixesAsync()
         {
+            _logger.LogDebug("Getting all suffixes.");
             List<LookupDto> suffixes = new List<LookupDto>();
             using (SqliteConnection conn = getConnection())
             {
@@ -203,9 +216,9 @@ namespace ContactsApi
             }
         }
 
-        // ADD VIRTUAL KEYWORD
         public virtual async Task UpdateContactAsync(Int32 uid, String firstName, String lastName, Int32 prefix, Int32 suffix, String? address, String? city, String? state, String? zip)
         {
+            _logger.LogInformation("Updating contact Uid: {Uid}", uid);
             using (SqliteConnection conn = getConnection())
             {
                 await conn.OpenAsync();
@@ -225,9 +238,9 @@ namespace ContactsApi
             }
         }
 
-        // ADD VIRTUAL KEYWORD
         public virtual async Task InsertContactAsync(String firstName, String lastName, Int32 prefix, Int32 suffix, String? address, String? city, String? state, String? zip)
         {
+            _logger.LogInformation("Inserting new contact: {FirstName} {LastName}", firstName, lastName);
             using (SqliteConnection conn = getConnection())
             {
                 await conn.OpenAsync();

@@ -64,4 +64,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ContactsApi\ContactsApi.csproj" />
+  </ItemGroup>
+
 </Project>

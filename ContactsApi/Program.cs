@@ -2,7 +2,8 @@ using ContactsApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging; // ADD THIS USING
+using Microsoft.Extensions.Logging;
+using ContactsApi; // ADD THIS USING DIRECTIVE
 
 var builder = WebApplication.CreateBuilder(args);
 

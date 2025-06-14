@@ -21,8 +21,8 @@
 
   <ItemGroup>
     <!-- UPDATE THESE PATHS -->
-    <Protobuf Include="$(SolutionDir)Protos\contacts.proto" GrpcServices="Server" />
-    <Protobuf Include="$(SolutionDir)Protos\lookups.proto" GrpcServices="Server" />
+    <Protobuf Include="$(SolutionDir)Protos\contacts.proto" GrpcServices="Both" />
+    <Protobuf Include="$(SolutionDir)Protos\lookups.proto" GrpcServices="Both" />
   </ItemGroup>
 
 </Project>

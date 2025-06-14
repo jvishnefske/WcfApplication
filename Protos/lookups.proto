@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option csharp_namespace = "ContactsApi.Grpc";
+
+package lookups;
+
+import "google/protobuf/empty.proto";
+
+// Messages for Lookups
+message Lookup {
+  int32 id = 1;
+  // RENAME 'value' to 'description' (if not already done)
+  string description = 2; 
+}
+
+message GetLookupsResponse {
+  repeated Lookup lookups = 1;
+}
+
+// Service for Lookups
+service LookupsService {
+  rpc GetPrefixes (google.protobuf.Empty) returns (GetLookupsResponse);
+  rpc GetSuffixes (google.protobuf.Empty) returns (GetLookupsResponse);
+}

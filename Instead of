@@ -1,0 +1,5 @@
+var defaultConnectionSectionMock = new Mock<IConfigurationSection>();
+defaultConnectionSectionMock.Setup(s => s.Value).Returns("DataSource=file::memory:?cache=shared");
+var connectionStringsSectionMock = new Mock<IConfigurationSection>();
+connectionStringsSectionMock.Setup(s => s.GetSection("DefaultConnection")).Returns(defaultConnectionSectionMock.Object);
+mockConfig.Setup(c => c.GetSection("ConnectionStrings")).Returns(connectionStringsSectionMock.Object);

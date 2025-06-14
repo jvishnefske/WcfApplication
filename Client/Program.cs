@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Client.Grpc;
+using ContactsApi.Grpc; // Corrected namespace for generated gRPC types
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core; // For RpcException
 

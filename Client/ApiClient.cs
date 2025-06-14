@@ -1,6 +1,6 @@
 using Grpc.Net.Client;
-using Client.Grpc; // Namespace for generated gRPC client code (from .proto files)
 using System; // Needed for Uri
+using ContactsApi.Grpc; // Namespace for generated gRPC client code (from .proto files)
 using System.Configuration; // ADD THIS USING for ConfigurationManager
 
 namespace Client // Corrected namespace
